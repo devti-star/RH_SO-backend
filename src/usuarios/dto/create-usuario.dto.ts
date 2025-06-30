@@ -29,6 +29,10 @@ export class CreateUsuarioDto {
   @Length(12)
   rg: string;
 
+  @IsString()
+  @Length(12)
+  orgaoExpeditor: string;
+
   @IsOptional()
   @IsString()
   @Length(25)
