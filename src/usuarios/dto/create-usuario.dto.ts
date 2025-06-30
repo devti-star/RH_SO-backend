@@ -6,8 +6,8 @@ import {
   IsEnum,
   IsNumberString,
   Length,
-} from 'class-validator';
-import { Role } from '../../enums/role.enum';
+} from "class-validator";
+import { Role } from "../../enums/role.enum";
 
 export class CreateUsuarioDto {
   @IsNotEmpty()
@@ -25,19 +25,18 @@ export class CreateUsuarioDto {
   @Length(11, 14)
   cpf: string;
 
-  @IsOptional()
   @IsString()
-  @Length(5, 25)
-  rg?: string;
+  @Length(12)
+  rg: string;
 
   @IsOptional()
   @IsString()
-  @Length(5, 25)
+  @Length(25)
   crm?: string;
 
   @IsOptional()
   @IsString()
-  @Length(5, 25)
+  @Length(25)
   cre?: string;
 
   @IsNotEmpty()
