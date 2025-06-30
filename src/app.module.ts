@@ -4,8 +4,10 @@ import { AppService } from "./app.service";
 import { UsuariosModule } from "./usuarios/usuarios.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule } from "@nestjs/config";
+import { MailModule } from './mail/mail.module';
 import { RequerimentosModule } from './requerimentos/requerimentos.module';
 import { HistoricosModule } from './historicos/historicos.module';
+
 
 @Module({
   imports: [
@@ -23,6 +25,7 @@ import { HistoricosModule } from './historicos/historicos.module';
       synchronize: true,
     }),
     UsuariosModule,
+    MailModule,
     RequerimentosModule,
     HistoricosModule,
   ],
