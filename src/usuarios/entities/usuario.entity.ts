@@ -6,10 +6,13 @@ import {
   BeforeInsert,
   TableInheritance,
   ChildEntity,
+  OneToOne,
+  JoinColumn,
 } from "typeorm";
 import { Role } from "../../enums/role.enum";
 import { Requerimento } from "../../requerimentos/entities/requerimento.entity";
 import { hashSync } from "bcrypt";
+import { RG } from "src/rg/entities/rg.entity";
 
 @Entity()
 @TableInheritance({ column: { type: "varchar", name: "type" } })
@@ -18,7 +21,8 @@ export class Usuario {
     nomeCompleto: string,
     email: string,
     cpf: string,
-    rg: string,
+    numeroRg: string,
+    orgaoExpeditor: string,
     senha: string,
     matricula: string,
     cargo: string,
@@ -27,7 +31,7 @@ export class Usuario {
     this.nomeCompleto = nomeCompleto;
     this.email = email;
     this.cpf = cpf;
-    this.rg = rg;
+    this.rg = new RG(this, numeroRg, orgaoExpeditor);
     this.senha = senha;
     this.matricula = matricula;
     this.cargo = cargo;
@@ -46,8 +50,9 @@ export class Usuario {
   @Column({ length: 25, unique: true })
   cpf: string;
 
-  @Column({ length: 12, unique: true, nullable: false })
-  rg: string;
+  @OneToOne(() => RG, (rg) => rg.proprietario, { cascade: true })
+  @JoinColumn()
+  rg: RG;
 
   @Column({ length: 25, unique: true })
   matricula: string;
@@ -90,14 +95,25 @@ export class Medico extends Usuario {
     nomeCompleto: string,
     email: string,
     cpf: string,
-    rg: string,
+    numeroRg: string,
+    orgaoExpeditor: string,
     senha: string,
     matricula: string,
     cargo: string,
     role: Role,
     crm: string
   ) {
-    super(nomeCompleto, email, cpf, rg, senha, matricula, cargo, role);
+    super(
+      nomeCompleto,
+      email,
+      cpf,
+      numeroRg,
+      orgaoExpeditor,
+      senha,
+      matricula,
+      cargo,
+      role
+    );
     this.crm = crm;
   }
 
@@ -111,14 +127,25 @@ export class Enfermeiro extends Usuario {
     nomeCompleto: string,
     email: string,
     cpf: string,
-    rg: string,
+    numeroRg: string,
+    orgaoExpeditor: string,
     senha: string,
     matricula: string,
     cargo: string,
     role: Role,
     cre: string
   ) {
-    super(nomeCompleto, email, cpf, rg, senha, matricula, cargo, role);
+    super(
+      nomeCompleto,
+      email,
+      cpf,
+      numeroRg,
+      orgaoExpeditor,
+      senha,
+      matricula,
+      cargo,
+      role
+    );
     this.cre = cre;
   }
 
