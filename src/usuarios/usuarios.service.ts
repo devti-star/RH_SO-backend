@@ -6,6 +6,7 @@ import { Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Usuario, Medico, Enfermeiro } from "./entities/usuario.entity";
 import { Role } from "src/enums/role.enum";
+import { compareSync, hashSync } from "bcrypt";
 
 @Injectable()
 export class UsuariosService {
@@ -80,9 +81,45 @@ export class UsuariosService {
   }
 
 
-  update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
-    return `This action updates a #${id} usuario`;
+
+// ...restante do código
+
+  async update(id: number, updateUsuarioDto: UpdateUsuarioDto): Promise<UsuarioResponseDto> {
+    const usuario = await this.repositorioUsuario.findOne({
+      where: { id },
+      relations: { rg: true },
+      select: ['id', 'nomeCompleto', 'departamento', 'secretaria', 'telefone', 'cargo', 'senha', 'foto', 'email', 'cpf', 'matricula', 'role'] 
+    });
+
+    if (!usuario) {
+      throw new NotFoundException(`Usuário com id ${id} não encontrado.`);
+    }
+
+    // Atualiza apenas campos permitidos
+    if (updateUsuarioDto.nomeCompleto !== undefined) usuario.nomeCompleto = updateUsuarioDto.nomeCompleto;
+    if (updateUsuarioDto.departamento !== undefined) usuario.departamento = updateUsuarioDto.departamento;
+    if (updateUsuarioDto.secretaria !== undefined) usuario.secretaria = updateUsuarioDto.secretaria;
+    if (updateUsuarioDto.telefone !== undefined) usuario.telefone = updateUsuarioDto.telefone;
+    if (updateUsuarioDto.cargo !== undefined) usuario.cargo = updateUsuarioDto.cargo;
+    if (updateUsuarioDto.foto !== undefined) usuario.foto = updateUsuarioDto.foto;
+
+    // Atualização de senha exige senha atual
+    if (updateUsuarioDto.senha !== undefined) {
+      if (!updateUsuarioDto.senhaAtual) {
+        throw new BadRequestException("É necessário informar a senha atual para alterar a senha.");
+      }
+      // Compara senha informada com hash salvo
+      const senhaConfere = compareSync(updateUsuarioDto.senhaAtual, usuario.senha);
+      if (!senhaConfere) {
+        throw new BadRequestException("Senha atual incorreta.");
+      }
+      usuario.senha = hashSync(updateUsuarioDto.senha, 10);
+    }
+
+    await this.repositorioUsuario.save(usuario);
+    return this.entityToResponseDto(usuario);
   }
+
 
   remove(id: number) {
     return `This action removes a #${id} usuario`;
