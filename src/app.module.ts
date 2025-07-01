@@ -10,10 +10,12 @@ import { RGModule } from "./rg/rg.module";
 import { MailModule } from './mail/mail.module';
 import { AuthModule } from './auth/auth.module';
 
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: [".env"],
+      isGlobal: true,
     }),
     TypeOrmModule.forRoot({
       type: "postgres",
@@ -35,4 +37,8 @@ import { AuthModule } from './auth/auth.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule {
+  
+}
+
+console.log('JWT_SECRET:', process.env.JWT_SECRET);
