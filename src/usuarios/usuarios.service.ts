@@ -1,10 +1,12 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateUsuarioDto } from "./dto/create-usuario.dto";
 import { UpdateUsuarioDto } from "./dto/update-usuario.dto";
+import { UsuarioResponseDto } from "./dto/usuario-response.dto";
 import { Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Usuario, Medico, Enfermeiro } from "./entities/usuario.entity";
 import { Role } from "src/enums/role.enum";
+import { compareSync, hashSync } from "bcrypt";
 
 @Injectable()
 export class UsuariosService {
@@ -30,13 +32,94 @@ export class UsuariosService {
     return `This action returns all usuarios`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} usuario`;
+  async findOne(id: number): Promise<UsuarioResponseDto> {
+    const usuario = await this.repositorioUsuario.findOne({
+      where: { id },
+      relations: { rg: true }, 
+    });
+
+    if (!usuario) {
+      throw new NotFoundException(`Usuário com id ${id} não encontrado.`);
+    }
+
+    
+    return this.entityToResponseDto(usuario);
   }
 
-  update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
-    return `This action updates a #${id} usuario`;
+  private entityToResponseDto(usuario: Usuario): UsuarioResponseDto {
+    return {
+      id: usuario.id,
+      nomeCompleto: usuario.nomeCompleto,
+      email: usuario.email,
+      cpf: usuario.cpf,
+      matricula: usuario.matricula,
+      departamento: usuario.departamento,
+      secretaria: usuario.secretaria,
+      telefone: usuario.telefone,
+      cargo: usuario.cargo,
+      foto: usuario.foto,
+      role: usuario.role,
+      rgNumero: usuario.rg?.numeroRG,
+      rgOrgaoExpeditor: usuario.rg?.orgãoExpeditor,
+      crm: (usuario as any).crm, // Só vai existir em médico
+      cre: (usuario as any).cre, // Só vai existir em enfermeiro
+    };
   }
+
+
+  async findByEmail(email: string): Promise<UsuarioResponseDto> {
+    const usuario = await this.repositorioUsuario.findOne({
+      where: { email },
+      relations: { rg: true },
+    });
+
+    if (!usuario) {
+      throw new NotFoundException(`Usuário com email ${email} não encontrado.`);
+    }
+
+    return this.entityToResponseDto(usuario);
+  }
+
+
+
+// ...restante do código
+
+  async update(id: number, updateUsuarioDto: UpdateUsuarioDto): Promise<UsuarioResponseDto> {
+    const usuario = await this.repositorioUsuario.findOne({
+      where: { id },
+      relations: { rg: true },
+      select: ['id', 'nomeCompleto', 'departamento', 'secretaria', 'telefone', 'cargo', 'senha', 'foto', 'email', 'cpf', 'matricula', 'role'] 
+    });
+
+    if (!usuario) {
+      throw new NotFoundException(`Usuário com id ${id} não encontrado.`);
+    }
+
+    // Atualiza apenas campos permitidos
+    if (updateUsuarioDto.nomeCompleto !== undefined) usuario.nomeCompleto = updateUsuarioDto.nomeCompleto;
+    if (updateUsuarioDto.departamento !== undefined) usuario.departamento = updateUsuarioDto.departamento;
+    if (updateUsuarioDto.secretaria !== undefined) usuario.secretaria = updateUsuarioDto.secretaria;
+    if (updateUsuarioDto.telefone !== undefined) usuario.telefone = updateUsuarioDto.telefone;
+    if (updateUsuarioDto.cargo !== undefined) usuario.cargo = updateUsuarioDto.cargo;
+    if (updateUsuarioDto.foto !== undefined) usuario.foto = updateUsuarioDto.foto;
+
+    // Atualização de senha exige senha atual
+    if (updateUsuarioDto.senha !== undefined) {
+      if (!updateUsuarioDto.senhaAtual) {
+        throw new BadRequestException("É necessário informar a senha atual para alterar a senha.");
+      }
+      // Compara senha informada com hash salvo
+      const senhaConfere = compareSync(updateUsuarioDto.senhaAtual, usuario.senha);
+      if (!senhaConfere) {
+        throw new BadRequestException("Senha atual incorreta.");
+      }
+      usuario.senha = hashSync(updateUsuarioDto.senha, 10);
+    }
+
+    await this.repositorioUsuario.save(usuario);
+    return this.entityToResponseDto(usuario);
+  }
+
 
   remove(id: number) {
     return `This action removes a #${id} usuario`;
