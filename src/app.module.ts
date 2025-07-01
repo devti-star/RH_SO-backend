@@ -4,9 +4,12 @@ import { AppService } from "./app.service";
 import { UsuariosModule } from "./usuarios/usuarios.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule } from "@nestjs/config";
+import { RequerimentosModule } from "./requerimentos/requerimentos.module";
+import { DocumentosModule } from "./documentos/documentos.module";
+import { AtestadosModule } from "./atestados/atestados.module";
+import { HistoricosModule } from "./historicos/historicos.module";
+import { RGModule } from "./rg/rg.module";
 import { MailModule } from './mail/mail.module';
-import { RequerimentosModule } from './requerimentos/requerimentos.module';
-import { HistoricosModule } from './historicos/historicos.module';
 
 
 @Module({
@@ -28,6 +31,7 @@ import { HistoricosModule } from './historicos/historicos.module';
     MailModule,
     RequerimentosModule,
     HistoricosModule,
+    RGModule,
   ],
   controllers: [AppController],
   providers: [AppService],

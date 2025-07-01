@@ -7,29 +7,29 @@ import {
   OneToOne,
   CreateDateColumn,
   UpdateDateColumn,
-} from 'typeorm';
-import { Usuario } from '../../usuarios/entities/usuario.entity';
-import { Status } from '../../enums/status.enum';
-import { Etapa } from '../../enums/etapa.enum';
-import { TipoRequerimento } from '../../enums/tipo-requerimento.enum';
-import { Documento } from '../../documentos/entities/documento.entity';
-import { Historico } from '../../historicos/entities/historico.entity';
+} from "typeorm";
+import { Usuario } from "../../usuarios/entities/usuario.entity";
+import { Status } from "../../enums/status.enum";
+import { Etapa } from "../../enums/etapa.enum";
+import { TipoRequerimento } from "../../enums/tipo-requerimento.enum";
+import { Documento } from "../../documentos/entities/documento.entity";
+import { Historico } from "../../historicos/entities/historico.entity";
 
-@Entity('requerimentos')
+@Entity()
 export class Requerimento {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: "int" })
   tipo: TipoRequerimento;
 
   @Column()
   assinatura: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: "int" })
   status: Status;
 
-  @Column({ type: 'int' })
+  @Column({ type: "int" })
   etapa: Etapa;
 
   @Column({ length: 255, nullable: true })
