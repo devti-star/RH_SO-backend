@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { CreateUsuarioDto } from "./dto/create-usuario.dto";
 import { UpdateUsuarioDto } from "./dto/update-usuario.dto";
 import { Repository } from "typeorm";
@@ -18,8 +18,12 @@ export class UsuariosService {
   ) {}
 
   async criar(createUsuarioDto: CreateUsuarioDto) {
-    const novoUsuario = this.criaUsuarioPorRole(createUsuarioDto);
-    return await this.salvaUsuarioPorRole(novoUsuario);
+    try{
+      const novoUsuario = this.criaUsuarioPorRole(createUsuarioDto);
+      await this.salvaUsuarioPorRole(novoUsuario);
+    } catch (error) {
+      throw new BadRequestException(error.message || 'Erro ao criar usuário.');
+    }
   }
 
   findAll() {
@@ -43,6 +47,7 @@ export class UsuariosService {
   ): Usuario | Medico | Enfermeiro {
     switch (criaUsuarioDto.role) {
       case Role.PADRAO:
+      case Role.TRIAGEM: 
         return new Usuario(
           criaUsuarioDto.nomeCompleto,
           criaUsuarioDto.email,
@@ -52,7 +57,10 @@ export class UsuariosService {
           criaUsuarioDto.senha,
           criaUsuarioDto.matricula,
           criaUsuarioDto.cargo,
-          criaUsuarioDto.role
+          criaUsuarioDto.role,
+          criaUsuarioDto.departamento,
+          criaUsuarioDto.secretaria,
+          criaUsuarioDto.telefone,
         );
 
       case Role.MEDICO:
@@ -66,7 +74,10 @@ export class UsuariosService {
           criaUsuarioDto.matricula,
           criaUsuarioDto.cargo,
           criaUsuarioDto.role,
-          criaUsuarioDto.crm as string
+          criaUsuarioDto.crm as string,
+          criaUsuarioDto.departamento,
+          criaUsuarioDto.secretaria,
+          criaUsuarioDto.telefone,
         );
 
       case Role.ENFERMEIRO:
@@ -80,7 +91,10 @@ export class UsuariosService {
           criaUsuarioDto.matricula,
           criaUsuarioDto.cargo,
           criaUsuarioDto.role,
-          criaUsuarioDto.cre as string
+          criaUsuarioDto.cre as string,
+          criaUsuarioDto.departamento,
+          criaUsuarioDto.secretaria,
+          criaUsuarioDto.telefone,
         );
 
       default:
@@ -91,13 +105,14 @@ export class UsuariosService {
   private salvaUsuarioPorRole(usuario: Usuario | Medico | Enfermeiro) {
     switch (usuario.role) {
       case Role.PADRAO:
-        this.repositorioUsuario.save(usuario);
-
+      case Role.TRIAGEM: 
+        return this.repositorioUsuario.save(usuario)
       case Role.MEDICO:
-        this.repositorioMedico.save(usuario);
-
+        return this.repositorioMedico.save(usuario);
       case Role.ENFERMEIRO:
-        this.repositorioEnfermeiro.save(usuario);
+        return this.repositorioEnfermeiro.save(usuario);
+      default:
+        throw new Error('Role inválida');
     }
   }
 
