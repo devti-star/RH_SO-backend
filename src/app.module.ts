@@ -10,6 +10,7 @@ import { RGModule } from "./rg/rg.module";
 import { MailModule } from './mail/mail.module';
 import { AuthModule } from './auth/auth.module';
 
+console.log('JWT_SECRET:', process.env.JWT_SECRET);
 
 @Module({
   imports: [
@@ -40,5 +41,3 @@ import { AuthModule } from './auth/auth.module';
 export class AppModule {
   
 }
-
-console.log('JWT_SECRET:', process.env.JWT_SECRET);

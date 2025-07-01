@@ -25,7 +25,7 @@ export class AuthService {
   }
 
   async validaUsuario(email: string, senha: string, role: Role): Promise<Usuario | null> {
-    const usuario = await this.usuarioService.findByEmail(email, false, role);
+    const usuario = await this.usuarioService.findByEmail(email, true, role);
 
     if (usuario){
       const senhaValida = await compareSync(senha, usuario.senha);
