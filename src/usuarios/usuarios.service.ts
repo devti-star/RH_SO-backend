@@ -18,11 +18,11 @@ export class UsuariosService {
   ) {}
 
   async criar(createUsuarioDto: CreateUsuarioDto) {
-    try{
+    try {
       const novoUsuario = this.criaUsuarioPorRole(createUsuarioDto);
       await this.salvaUsuarioPorRole(novoUsuario);
     } catch (error) {
-      throw new BadRequestException(error.message || 'Erro ao criar usuário.');
+      throw new BadRequestException(error.message || "Erro ao criar usuário.");
     }
   }
 
@@ -47,7 +47,7 @@ export class UsuariosService {
   ): Usuario | Medico | Enfermeiro {
     switch (criaUsuarioDto.role) {
       case Role.PADRAO:
-      case Role.TRIAGEM: 
+      case Role.TRIAGEM:
         return new Usuario(
           criaUsuarioDto.nomeCompleto,
           criaUsuarioDto.email,
@@ -60,7 +60,7 @@ export class UsuariosService {
           criaUsuarioDto.role,
           criaUsuarioDto.departamento,
           criaUsuarioDto.secretaria,
-          criaUsuarioDto.telefone,
+          criaUsuarioDto.telefone
         );
 
       case Role.MEDICO:
@@ -77,7 +77,7 @@ export class UsuariosService {
           criaUsuarioDto.crm as string,
           criaUsuarioDto.departamento,
           criaUsuarioDto.secretaria,
-          criaUsuarioDto.telefone,
+          criaUsuarioDto.telefone
         );
 
       case Role.ENFERMEIRO:
@@ -94,7 +94,7 @@ export class UsuariosService {
           criaUsuarioDto.cre as string,
           criaUsuarioDto.departamento,
           criaUsuarioDto.secretaria,
-          criaUsuarioDto.telefone,
+          criaUsuarioDto.telefone
         );
 
       default:
@@ -105,14 +105,14 @@ export class UsuariosService {
   private salvaUsuarioPorRole(usuario: Usuario | Medico | Enfermeiro) {
     switch (usuario.role) {
       case Role.PADRAO:
-      case Role.TRIAGEM: 
-        return this.repositorioUsuario.save(usuario)
+      case Role.TRIAGEM:
+        return this.repositorioUsuario.save(usuario);
       case Role.MEDICO:
         return this.repositorioMedico.save(usuario);
       case Role.ENFERMEIRO:
         return this.repositorioEnfermeiro.save(usuario);
       default:
-        throw new Error('Role inválida');
+        throw new Error("Role inválida");
     }
   }
 
@@ -133,16 +133,16 @@ export class UsuariosService {
         break;
       case Role.MEDICO:
         usuario = await this.repositorioMedico
-          .createQueryBuilder("usuario")
-          .addSelect(includePassword ? "usuario.senha" : "")
-          .where("usuario.email = :email", { email })
+          .createQueryBuilder("medico")
+          .addSelect(includePassword ? "medico.senha" : "")
+          .where("medico.email = :email", { email })
           .getOne();
         break;
       case Role.ENFERMEIRO:
         usuario = await this.repositorioEnfermeiro
-          .createQueryBuilder("usuario")
-          .addSelect(includePassword ? "usuario.senha" : "")
-          .where("usuario.email = :email", { email })
+          .createQueryBuilder("enfermeiro")
+          .addSelect(includePassword ? "enfermeiro.senha" : "")
+          .where("enfermeiro.email = :email", { email })
           .getOne();
         break;
     }
