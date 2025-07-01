@@ -26,7 +26,10 @@ export class Usuario {
     senha: string,
     matricula: string,
     cargo: string,
-    role: Role
+    role: Role,
+    departamento: string,
+    secretaria: string,
+    telefone: string,
   ) {
     this.nomeCompleto = nomeCompleto;
     this.email = email;
@@ -36,6 +39,9 @@ export class Usuario {
     this.matricula = matricula;
     this.cargo = cargo;
     this.role = role;
+    this.departamento = departamento;
+    this.secretaria = secretaria;
+    this.telefone = telefone;
   }
 
   @PrimaryGeneratedColumn()
@@ -101,7 +107,10 @@ export class Medico extends Usuario {
     matricula: string,
     cargo: string,
     role: Role,
-    crm: string
+    crm: string,
+    departamento: string,
+    secretaria: string,
+    telefone: string,
   ) {
     super(
       nomeCompleto,
@@ -112,7 +121,10 @@ export class Medico extends Usuario {
       senha,
       matricula,
       cargo,
-      role
+      role,
+      departamento,
+      secretaria,
+      telefone,
     );
     this.crm = crm;
   }
@@ -133,7 +145,10 @@ export class Enfermeiro extends Usuario {
     matricula: string,
     cargo: string,
     role: Role,
-    cre: string
+    cre: string,
+    departamento: string,
+    secretaria: string,
+    telefone: string,
   ) {
     super(
       nomeCompleto,
@@ -144,7 +159,10 @@ export class Enfermeiro extends Usuario {
       senha,
       matricula,
       cargo,
-      role
+      role,
+      departamento,
+      secretaria,
+      telefone,
     );
     this.cre = cre;
   }
