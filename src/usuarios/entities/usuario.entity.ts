@@ -76,7 +76,7 @@ export class Usuario {
   cargo: string;
 
   @Column({ select: false })
-  senha: string;
+  senha?: string;
 
   @Column({ nullable: true })
   foto: string;

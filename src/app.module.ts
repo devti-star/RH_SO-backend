@@ -7,10 +7,12 @@ import { ConfigModule } from "@nestjs/config";
 import { RequerimentosModule } from "./requerimentos/requerimentos.module";
 import { HistoricosModule } from "./historicos/historicos.module";
 import { RGModule } from "./rg/rg.module";
-import { MailModule } from './mail/mail.module';
-import { AuthModule } from './auth/auth.module';
+import { MailModule } from "./mail/mail.module";
+import { AuthModule } from "./auth/auth.module";
+import { APP_FILTER, APP_GUARD } from "@nestjs/core";
+import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
 
-console.log('JWT_SECRET:', process.env.JWT_SECRET);
+console.log("JWT_SECRET:", process.env.JWT_SECRET);
 
 @Module({
   imports: [
@@ -36,8 +38,10 @@ console.log('JWT_SECRET:', process.env.JWT_SECRET);
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    // { provide: APP_GUARD, useClass: JwtAuthGuard },
+    
+  ],
 })
-export class AppModule {
-  
-}
+export class AppModule {}

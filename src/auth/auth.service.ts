@@ -19,23 +19,34 @@ export class AuthService {
       sub: usuario.id,
       email: usuario.email,
       nome: usuario.nomeCompleto,
-      role: usuario.role,
     };
-    return { acess_token: this.jwtService.sign(payload), token_type: "Bearer" };
+
+    return { acess_token: this.jwtService.sign(payload), token_type: 'Bearer' };
   }
 
-  async validaUsuario(email: string, senha: string, role: Role): Promise<Usuario | null> {
-    const usuario = await this.usuarioService.findByEmail(email, true, role);
+  async validaUsuario(email: string, senha: string): Promise<Usuario | null> {
+    const usuario = await this.usuarioService.findByEmailcomSenha(email);
 
-    if (usuario){
-      const senhaValida = await compareSync(senha, usuario.senha);
+    const isPasswordValid = usuario?.senha
+      ? compareSync(senha, usuario?.senha)
+      : false;
 
-      if (senhaValida){
-        const {senha, ...resultado} = usuario;
-        return resultado as Usuario;
-      }
+    if (isPasswordValid) {
+      delete usuario?.senha;
+      return usuario;
     }
 
     return null;
+
+    // if (usuario) {
+    //   const senhaValida = await compareSync(senha, usuario.senha);
+
+    //   if (senhaValida) {
+    //     const { senha, ...resultado } = usuario;
+    //     return resultado as Usuario;
+    //   }
+    // }
+
+    // return null;
   }
 }
