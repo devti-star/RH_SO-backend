@@ -100,4 +100,47 @@ export class UsuariosService {
         this.repositorioEnfermeiro.save(usuario);
     }
   }
+
+  async findByEmail(
+    email: string,
+    includePassword: boolean = false,
+    role: Role
+  ): Promise<Usuario | Enfermeiro | Medico | null> {
+    let usuario: Usuario | Enfermeiro | Medico | null = null;
+
+    switch (role) {
+      case Role.PADRAO:
+        usuario = await this.repositorioUsuario
+          .createQueryBuilder("usuario")
+          .addSelect(includePassword ? "usuario.senha" : "")
+          .where("usuario.email = :email", { email })
+          .getOne();
+        break;
+      case Role.MEDICO:
+        usuario = await this.repositorioMedico
+          .createQueryBuilder("usuario")
+          .addSelect(includePassword ? "usuario.senha" : "")
+          .where("usuario.email = :email", { email })
+          .getOne();
+        break;
+      case Role.ENFERMEIRO:
+        usuario = await this.repositorioEnfermeiro
+          .createQueryBuilder("usuario")
+          .addSelect(includePassword ? "usuario.senha" : "")
+          .where("usuario.email = :email", { email })
+          .getOne();
+        break;
+    }
+
+    if (!usuario) {
+      return null;
+    }
+
+    if (includePassword) {
+      return usuario;
+    } else {
+      const { senha, ...resultado } = usuario;
+      return resultado as Usuario;
+    }
+  }
 }

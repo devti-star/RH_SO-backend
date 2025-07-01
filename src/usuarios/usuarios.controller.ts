@@ -29,6 +29,7 @@ export class UsuariosController {
   findOne(@Param("id") id: string) {
     return this.usuariosService.findOne(+id);
   }
+  
 
   @Patch(":id")
   update(@Param("id") id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {
