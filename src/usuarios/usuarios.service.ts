@@ -87,14 +87,12 @@ export class UsuariosService {
   }
 
   async findByEmailcomSenha(email: string): Promise<Usuario> {
-    console.log("findByEmailcomSenha 1");
     const usuario = await this.repositorioUsuario
     .createQueryBuilder('usuario')
     .addSelect('usuario.senha')
     .where('usuario.email = :email', { email })
     .getOne()
     
-    console.log("findByEmailcomSenha 2");
     if (!usuario) {
       throw new NotFoundException(`Usuário com email ${email} não encontrado.`);
     }

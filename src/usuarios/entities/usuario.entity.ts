@@ -84,7 +84,7 @@ export class Usuario {
   @Column({ type: "int" })
   role: Role;
 
-  @OneToMany(() => Requerimento, (requerimento) => requerimento.usuario)
+  @OneToMany(() => Requerimento, (requerimentos) => requerimentos.usuario)
   requerimentos: Requerimento[];
 
   @BeforeInsert()

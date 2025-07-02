@@ -19,10 +19,8 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
     ]);
 
     if (isPublic) {
-      console.log("Aqui no JwtAuthGuard 1");
       return true;
     }
-    console.log("Aqui no JwtAuthGuard 2");
 
     return super.canActivate(context);
   }
