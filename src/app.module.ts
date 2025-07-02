@@ -12,7 +12,6 @@ import { AuthModule } from "./auth/auth.module";
 import { APP_FILTER, APP_GUARD } from "@nestjs/core";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
 
-console.log("JWT_SECRET:", process.env.JWT_SECRET);
 
 @Module({
   imports: [
@@ -38,10 +37,8 @@ console.log("JWT_SECRET:", process.env.JWT_SECRET);
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-    // { provide: APP_GUARD, useClass: JwtAuthGuard },
-    
-  ],
+  providers: [AppService, { provide: APP_GUARD, useClass: JwtAuthGuard }],
 })
 export class AppModule {}
+
+console.log("JWT_SECRET:", process.env.JWT_SECRET);

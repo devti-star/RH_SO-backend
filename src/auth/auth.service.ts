@@ -37,16 +37,5 @@ export class AuthService {
     }
 
     return null;
-
-    // if (usuario) {
-    //   const senhaValida = await compareSync(senha, usuario.senha);
-
-    //   if (senhaValida) {
-    //     const { senha, ...resultado } = usuario;
-    //     return resultado as Usuario;
-    //   }
-    // }
-
-    // return null;
   }
 }
