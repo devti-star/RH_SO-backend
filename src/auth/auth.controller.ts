@@ -5,10 +5,14 @@ import { Usuario } from 'src/usuarios/entities/usuario.entity';
 import { IsPublic } from 'src/shared/decorators/is-public.decorator';
 import { ApiPaginatedResponse } from 'src/shared/decorators/api-paginated-response.decorator';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { UsuariosService } from 'src/usuarios/usuarios.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usuariosService: UsuariosService,
+  ) {}
 
   @IsPublic()
   @Post('login')
@@ -22,6 +26,6 @@ export class AuthController {
   @ApiPaginatedResponse(Usuario)
   @Get('me')
   me(@CurrentUser() usuario: Usuario){
-    return usuario;
+    return this.usuariosService.entityToResponseDto(usuario);
   }
 }

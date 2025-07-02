@@ -46,7 +46,7 @@ export class UsuariosService {
     return this.entityToResponseDto(usuario);
   }
 
-  private entityToResponseDto(usuario: Usuario): UsuarioResponseDto {
+  public entityToResponseDto(usuario: Usuario): UsuarioResponseDto {
     return {
       id: usuario.id,
       nomeCompleto: usuario.nomeCompleto,
