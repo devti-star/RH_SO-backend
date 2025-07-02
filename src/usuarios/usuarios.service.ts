@@ -20,11 +20,11 @@ export class UsuariosService {
   ) {}
 
   async criar(createUsuarioDto: CreateUsuarioDto) {
-    try{
+    try {
       const novoUsuario = this.criaUsuarioPorRole(createUsuarioDto);
       await this.salvaUsuarioPorRole(novoUsuario);
     } catch (error) {
-      throw new BadRequestException(error.message || 'Erro ao criar usuário.');
+      throw new BadRequestException(error.message || "Erro ao criar usuário.");
     }
   }
 
@@ -63,21 +63,41 @@ export class UsuariosService {
       rgOrgaoExpeditor: usuario.rg?.orgãoExpeditor,
       crm: (usuario as any).crm, // Só vai existir em médico
       cre: (usuario as any).cre, // Só vai existir em enfermeiro
-    };
+    } as UsuarioResponseDto;
   }
 
 
-  async findByEmail(email: string): Promise<UsuarioResponseDto> {
-    const usuario = await this.repositorioUsuario.findOne({
-      where: { email },
-      relations: { rg: true },
-    });
+  async findByEmail(email: string, incluirSenha: boolean = false): Promise<UsuarioResponseDto> {
+    const usuario = await this.repositorioUsuario
+    .createQueryBuilder('usuario')
+    .addSelect('usuario.senha')
+    .where('usuario.email = :email', { email })
+    .getOne()
 
     if (!usuario) {
       throw new NotFoundException(`Usuário com email ${email} não encontrado.`);
     }
 
-    return this.entityToResponseDto(usuario);
+    if (incluirSenha){
+      return usuario;
+    } else {
+      const { senha, ...resultado} = usuario;
+      return resultado as UsuarioResponseDto
+    }
+  }
+
+  async findByEmailcomSenha(email: string): Promise<Usuario> {
+    const usuario = await this.repositorioUsuario
+    .createQueryBuilder('usuario')
+    .addSelect('usuario.senha')
+    .where('usuario.email = :email', { email })
+    .getOne()
+    
+    if (!usuario) {
+      throw new NotFoundException(`Usuário com email ${email} não encontrado.`);
+    }
+
+    return usuario;
   }
 
 
@@ -108,12 +128,14 @@ export class UsuariosService {
       if (!updateUsuarioDto.senhaAtual) {
         throw new BadRequestException("É necessário informar a senha atual para alterar a senha.");
       }
-      // Compara senha informada com hash salvo
-      const senhaConfere = compareSync(updateUsuarioDto.senhaAtual, usuario.senha);
-      if (!senhaConfere) {
-        throw new BadRequestException("Senha atual incorreta.");
+      if (usuario.senha){
+        // Compara senha informada com hash salvo
+        const senhaConfere = compareSync(updateUsuarioDto.senhaAtual, usuario.senha);
+        if (!senhaConfere) {
+          throw new BadRequestException("Senha atual incorreta.");
+        }
+        usuario.senha = hashSync(updateUsuarioDto.senha, 10);
       }
-      usuario.senha = hashSync(updateUsuarioDto.senha, 10);
     }
 
     await this.repositorioUsuario.save(usuario);
@@ -130,7 +152,7 @@ export class UsuariosService {
   ): Usuario | Medico | Enfermeiro {
     switch (criaUsuarioDto.role) {
       case Role.PADRAO:
-      case Role.TRIAGEM: 
+      case Role.TRIAGEM:
         return new Usuario(
           criaUsuarioDto.nomeCompleto,
           criaUsuarioDto.email,
@@ -143,7 +165,7 @@ export class UsuariosService {
           criaUsuarioDto.role,
           criaUsuarioDto.departamento,
           criaUsuarioDto.secretaria,
-          criaUsuarioDto.telefone,
+          criaUsuarioDto.telefone
         );
 
       case Role.MEDICO:
@@ -160,7 +182,7 @@ export class UsuariosService {
           criaUsuarioDto.crm as string,
           criaUsuarioDto.departamento,
           criaUsuarioDto.secretaria,
-          criaUsuarioDto.telefone,
+          criaUsuarioDto.telefone
         );
 
       case Role.ENFERMEIRO:
@@ -177,7 +199,7 @@ export class UsuariosService {
           criaUsuarioDto.cre as string,
           criaUsuarioDto.departamento,
           criaUsuarioDto.secretaria,
-          criaUsuarioDto.telefone,
+          criaUsuarioDto.telefone
         );
 
       default:
@@ -188,14 +210,57 @@ export class UsuariosService {
   private salvaUsuarioPorRole(usuario: Usuario | Medico | Enfermeiro) {
     switch (usuario.role) {
       case Role.PADRAO:
-      case Role.TRIAGEM: 
-        return this.repositorioUsuario.save(usuario)
+      case Role.TRIAGEM:
+        return this.repositorioUsuario.save(usuario);
       case Role.MEDICO:
         return this.repositorioMedico.save(usuario);
       case Role.ENFERMEIRO:
         return this.repositorioEnfermeiro.save(usuario);
       default:
-        throw new Error('Role inválida');
+        throw new Error("Role inválida");
     }
   }
+
+  // async findByEmail(
+  //   email: string,
+  //   includePassword: boolean = false,
+  //   role: Role
+  // ): Promise<Usuario | Enfermeiro | Medico | null> {
+  //   let usuario: Usuario | Enfermeiro | Medico | null = null;
+
+  //   switch (role) {
+  //     case Role.PADRAO:
+  //       usuario = await this.repositorioUsuario
+  //         .createQueryBuilder("usuario")
+  //         .addSelect(includePassword ? "usuario.senha" : "")
+  //         .where("usuario.email = :email", { email })
+  //         .getOne();
+  //       break;
+  //     case Role.MEDICO:
+  //       usuario = await this.repositorioMedico
+  //         .createQueryBuilder("medico")
+  //         .addSelect(includePassword ? "medico.senha" : "")
+  //         .where("medico.email = :email", { email })
+  //         .getOne();
+  //       break;
+  //     case Role.ENFERMEIRO:
+  //       usuario = await this.repositorioEnfermeiro
+  //         .createQueryBuilder("enfermeiro")
+  //         .addSelect(includePassword ? "enfermeiro.senha" : "")
+  //         .where("enfermeiro.email = :email", { email })
+  //         .getOne();
+  //       break;
+  //   }
+
+  //   if (!usuario) {
+  //     return null;
+  //   }
+
+  //   if (includePassword) {
+  //     return usuario;
+  //   } else {
+  //     const { senha, ...resultado } = usuario;
+  //     return resultado as Usuario;
+  //   }
+  // }
 }

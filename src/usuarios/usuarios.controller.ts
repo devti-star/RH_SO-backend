@@ -32,6 +32,7 @@ export class UsuariosController {
   async findOne(@Param('id') id: string): Promise<UsuarioResponseDto> {
     return this.usuariosService.findOne(+id);
   }
+  
 
   @Get('buscar/email')
   findByEmail(@Query('email') email: string) {

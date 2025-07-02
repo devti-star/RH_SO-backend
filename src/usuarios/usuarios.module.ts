@@ -11,5 +11,6 @@ import { Requerimento } from "src/requerimentos/entities/requerimento.entity";
   imports: [
     TypeOrmModule.forFeature([Usuario, Medico, Enfermeiro, Requerimento]),
   ],
+  exports: [TypeOrmModule, UsuariosService],
 })
 export class UsuariosModule {}

@@ -7,13 +7,17 @@ import { ConfigModule } from "@nestjs/config";
 import { RequerimentosModule } from "./requerimentos/requerimentos.module";
 import { HistoricosModule } from "./historicos/historicos.module";
 import { RGModule } from "./rg/rg.module";
-import { MailModule } from './mail/mail.module';
+import { MailModule } from "./mail/mail.module";
+import { AuthModule } from "./auth/auth.module";
+import { APP_FILTER, APP_GUARD } from "@nestjs/core";
+import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
 
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: [".env"],
+      isGlobal: true,
     }),
     TypeOrmModule.forRoot({
       type: "postgres",
@@ -30,8 +34,11 @@ import { MailModule } from './mail/mail.module';
     RequerimentosModule,
     HistoricosModule,
     RGModule,
+    AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, { provide: APP_GUARD, useClass: JwtAuthGuard }],
 })
 export class AppModule {}
+
+console.log("JWT_SECRET:", process.env.JWT_SECRET);

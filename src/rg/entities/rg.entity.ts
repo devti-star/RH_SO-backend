@@ -12,7 +12,7 @@ export class RG {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => Usuario, (proprietario) => proprietario.rg)
+  @OneToOne(() => Usuario, (proprietario) => proprietario.rg, {eager: false, lazy: true})
   proprietario: Usuario;
 
   @Column({ nullable: false })
