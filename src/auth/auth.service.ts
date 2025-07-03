@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { UsuariosService } from "src/usuarios/usuarios.service";
+import { UsuariosService } from "../usuarios/usuarios.service"; 
 import { UserToken } from "./models/user-token.model";
-import { Usuario } from "src/usuarios/entities/usuario.entity";
+import { Usuario } from "../usuarios/entities/usuario.entity"; 
 import { UserPayload } from "./models/user-payload.model";
-import { Role } from "src/enums/role.enum";
+import { Role } from "../enums/role.enum"; 
 import { compareSync } from "bcrypt";
 
 @Injectable()
@@ -21,7 +21,7 @@ export class AuthService {
       nome: usuario.nomeCompleto,
     };
 
-    return { acess_token: this.jwtService.sign(payload), token_type: 'Bearer' };
+    return { access_token: this.jwtService.sign(payload), token_type: 'Bearer' };
   }
 
   async validaUsuario(email: string, senha: string): Promise<Usuario | null> {

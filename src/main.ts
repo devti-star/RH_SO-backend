@@ -10,13 +10,19 @@ async function bootstrap() {
   const mailService = app.select(MailModule).get(MailService);
   
   // Teste o envio de email
-  /*
+  
   await mailService.sendDynamicEmail(
-    'teste@email.com', // Use um email real aqui
+    'viniciusbarbosaribeiro12@gmail.com', // Use um email real aqui
     'Teste SMTP - Funcionou!',
     '<h1>Sucesso!</h1><p>Este é um teste de configuração SMTP</p>'
   );
-  */
+  
+
+  app.enableCors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+  });
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

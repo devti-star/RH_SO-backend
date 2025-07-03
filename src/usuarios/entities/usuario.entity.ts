@@ -12,7 +12,7 @@ import {
 import { Role } from "../../enums/role.enum";
 import { Requerimento } from "../../requerimentos/entities/requerimento.entity";
 import { hashSync } from "bcrypt";
-import { RG } from "src/rg/entities/rg.entity";
+import { RG } from "../../rg/entities/rg.entity";
 
 @Entity()
 @TableInheritance({ column: { type: "varchar", name: "type" } })
