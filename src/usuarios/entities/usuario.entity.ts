@@ -93,6 +93,15 @@ export class Usuario {
       this.senha = hashSync(this.senha, 10);
     }
   }
+
+  @Column({ default: false })
+  isActive: boolean;
+
+  @Column({ nullable: true, type: 'timestamp' })
+  activatedAt: Date;
+
+  @Column({ nullable: true })
+  activationToken: string;
 }
 
 @ChildEntity()

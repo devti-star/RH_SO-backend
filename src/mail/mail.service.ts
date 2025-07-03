@@ -1,4 +1,3 @@
-// mail.service.ts
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 
@@ -18,7 +17,6 @@ export class MailService {
       subject,
     };
 
-    // Usa template se fornecido, senão usa conteúdo direto
     if (template) {
       mailOptions.template = template;
       mailOptions.context = context;
@@ -32,5 +30,24 @@ export class MailService {
     } catch (error) {
       throw new Error(`Falha no envio: ${error.message}`);
     }
+  }
+
+  async sendActivationEmail(
+    email: string,
+    name: string,
+    activationToken: string
+  ) {
+    const activationLink = `${process.env.APP_URL}/auth/activate?token=${activationToken}`;
+
+    await this.sendDynamicEmail(
+      email,
+      'Ative sua conta',
+      '',
+      'activation',
+      {
+        name,
+        activationLink
+      }
+    );
   }
 }
