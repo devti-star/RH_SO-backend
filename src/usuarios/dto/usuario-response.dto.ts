@@ -1,23 +1,33 @@
+import { Exclude, Expose} from "class-transformer";
+import { Usuario } from "../entities/usuario.entity";
+import { Role } from "src/enums/role.enum";
+
+
 export class UsuarioResponseDto {
-  id?: number;
-  nomeCompleto?: string;
-  email?: string;
-  cpf?: string;
-  matricula?: string;
-  departamento?: string;
-  secretaria?: string;
-  telefone?: string;
-  cargo?: string;
+  constructor(usuario: Usuario){
+      this.id = usuario.id,
+      this.nomeCompleto = usuario.nomeCompleto,
+      this.cpf = usuario.cpf,
+      this.email = usuario.email,
+      this.matricula = usuario.matricula,
+      this.secretaria = usuario.secretaria,
+      this.departamento = usuario.departamento,
+      this.telefone = usuario.telefone,
+      this.cargo = usuario.cargo,
+      this.foto = usuario.foto,
+      this.role = usuario.role
+    }
+  
+  id: number;
+  nomeCompleto: string;
+  cpf: string;
+  email: string;
+  matricula: string;
+  secretaria: string;
+  departamento: string;
+  telefone: string;
+  cargo: string;
   foto?: string;
-  role?: number; // Ou 'Role' se quiser importar o enum
+  role: Role;
 
-  // Dados do RG (quando existirem)
-  rgNumero?: string;
-  rgOrgaoExpeditor?: string;
-
-  // Campos exclusivos para médico
-  crm?: string;
-
-  // Campos exclusivos para enfermeiro
-  cre?: string;
 }

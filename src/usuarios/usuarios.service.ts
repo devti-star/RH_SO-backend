@@ -42,28 +42,8 @@ export class UsuariosService {
       throw new NotFoundException(`Usuário com id ${id} não encontrado.`);
     }
 
-    
-    return this.entityToResponseDto(usuario);
-  }
-
-  private entityToResponseDto(usuario: Usuario): UsuarioResponseDto {
-    return {
-      id: usuario.id,
-      nomeCompleto: usuario.nomeCompleto,
-      email: usuario.email,
-      cpf: usuario.cpf,
-      matricula: usuario.matricula,
-      departamento: usuario.departamento,
-      secretaria: usuario.secretaria,
-      telefone: usuario.telefone,
-      cargo: usuario.cargo,
-      foto: usuario.foto,
-      role: usuario.role,
-      rgNumero: usuario.rg?.numeroRG,
-      rgOrgaoExpeditor: usuario.rg?.orgãoExpeditor,
-      crm: (usuario as any).crm, // Só vai existir em médico
-      cre: (usuario as any).cre, // Só vai existir em enfermeiro
-    };
+    const usuarioResponse: UsuarioResponseDto = new UsuarioResponseDto(usuario);
+    return usuarioResponse;
   }
 
 
@@ -77,7 +57,8 @@ export class UsuariosService {
       throw new NotFoundException(`Usuário com email ${email} não encontrado.`);
     }
 
-    return this.entityToResponseDto(usuario);
+    const usuarioResponse: UsuarioResponseDto = new UsuarioResponseDto(usuario);
+    return usuarioResponse;
   }
 
 
@@ -117,7 +98,8 @@ export class UsuariosService {
     }
 
     await this.repositorioUsuario.save(usuario);
-    return this.entityToResponseDto(usuario);
+    const usuarioResponse: UsuarioResponseDto = new UsuarioResponseDto(usuario);
+    return usuarioResponse;
   }
 
 
