@@ -31,11 +31,10 @@ export class DocumentosService {
     await fs.promises.writeFile(destino, file.buffer);
 
     // Aqui passamos o objeto parcial de Requerimento
-    const doc = this.repo.create({
-      caminho: filename,
-      requerimento: { id: requerimentoId } as Requerimento,
-    });
-
-    return this.repo.save(doc);
-  }
+   const doc = this.repo.create({
+    caminho: filename,
+    requerimento: { id: requerimentoId } as Requerimento,
+  });
+  return this.repo.save(doc);
+    }
 }
