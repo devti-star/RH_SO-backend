@@ -32,9 +32,10 @@ export class UsuariosService {
     return `This action returns all usuarios`;
   }
 
-  async findOne(id: number): Promise<UsuarioResponseDto> {
+  async findOne(id: number, campos: (keyof UsuarioResponseDto)[] = []): Promise<Partial<UsuarioResponseDto>> {
     const usuario = await this.repositorioUsuario.findOne({
       where: { id },
+      select: campos.length > 0 ? campos : undefined,
       relations: { rg: true }, 
     });
 
