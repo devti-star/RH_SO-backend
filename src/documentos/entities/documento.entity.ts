@@ -3,6 +3,8 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
   ChildEntity,
   TableInheritance,
 } from 'typeorm';
@@ -15,23 +17,26 @@ export class Documento {
   id: number;
 
   @Column({ length: 255 })
-  caminho: string; // caminho do arquivo (ex: uploads/...)
+  caminho: string;
 
-  @ManyToOne(() => Requerimento, (requerimento) => requerimento.documentos, { onDelete: 'CASCADE' })
+  // 1) campo de FK explícito via JoinColumn
+  @ManyToOne(() => Requerimento, (req) => req.documentos, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'requerimentoId' })
   requerimento: Requerimento;
+
+  // 2) opcional: data de upload
+  @CreateDateColumn({ name: 'criado_em' })
+  criadoEm: Date;
 }
 
 @ChildEntity()
 export class Atestado extends Documento {
   @Column({ type: 'boolean', default: false })
-  maior3dias: boolean; // Indica se o atestado é maior que 3 dias
+  maior3dias: boolean;
 
   @Column({ type: 'boolean', default: false })
-  concluido: boolean; // Indica se o atestado foi concluído
+  concluido: boolean;
 
   @Column({ length: 255, nullable: true })
-  justificativa: string; // Justificativa para o atestado, se necessário
-
-  // Adicione mais campos que sejam específicos de atestado, se necessário
+  justificativa: string;
 }
-

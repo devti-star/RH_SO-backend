@@ -11,6 +11,7 @@ import { MailModule } from "./mail/mail.module";
 import { AuthModule } from "./auth/auth.module";
 import { APP_FILTER, APP_GUARD } from "@nestjs/core";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
+import { DocumentosModule } from './documentos/documentos.module';
 
 
 @Module({
@@ -35,6 +36,7 @@ import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
     HistoricosModule,
     RGModule,
     AuthModule,
+    DocumentosModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: JwtAuthGuard }],
