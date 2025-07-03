@@ -19,6 +19,7 @@ export class AuthService {
       sub: usuario.id,
       email: usuario.email,
       nome: usuario.nomeCompleto,
+      role: usuario.role,
     };
 
     return { access_token: this.jwtService.sign(payload), token_type: 'Bearer' };
