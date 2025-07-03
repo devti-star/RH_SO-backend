@@ -21,8 +21,8 @@ import { MailService } from './mail.service';
           tls: {
             rejectUnauthorized: false // Ignora erros de certificado
           },
-          logger: true, // Para ver logs detalhados
-          debug: true // Ativa modo debug
+          logger: false, // Para ver logs detalhados
+          debug: false // Ativa modo debug
         },
         defaults: {
           from: '"No Reply" <dev.ti@treslagoas.ms.gov.br>',
