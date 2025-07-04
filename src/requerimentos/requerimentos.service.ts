@@ -35,7 +35,23 @@ export class RequerimentosService {
 
   async findAll() {
     const requerimentos: Requerimento[] = await this.repositorioRequerimento.find({
-      relations: {usuario: true}
+      relations: {
+        usuario: {
+          rg: true,
+        }
+      },
+    });
+    return requerimentos;
+  }
+
+  async findAllRequerimentsUser(idUsuario: number){
+    const requerimentos: Requerimento[] = await this.repositorioRequerimento.find({
+      relations: {
+        usuario: {
+          rg: true,
+        }
+      },
+      where: {usuario: {id: idUsuario}}
     });
     return requerimentos;
   }
@@ -46,7 +62,7 @@ export class RequerimentosService {
       relations: {
         usuario: {
           rg: true,
-        },
+        }
       },
     });
 
@@ -62,7 +78,14 @@ export class RequerimentosService {
     return this.findOne(id);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} requerimento`;
+  async remove(id: number) {
+    await this.findOne(id);
+    const removeRequerimento = await this.repositorioRequerimento.delete(id);
+
+    if(!removeRequerimento.affected){
+      throw new RequerimentoNotFoundException(id); 
+    }
+
+    return true;
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, ParseIntPipe } from '@nestjs/common';
 import { RequerimentosService } from './requerimentos.service';
 import { UpdateRequerimentoDto } from './dto/update-requerimento.dto';
 import { CreateRequerimentoDto } from './dto/create-requerimento.dto';
@@ -6,20 +6,25 @@ import { CreateRequerimentoDto } from './dto/create-requerimento.dto';
 @Controller('requerimentos')
 export class RequerimentosController {
   constructor(private readonly requerimentosService: RequerimentosService) {}
-
-  @Post()
-  create(@Body() createRequerimentoDto: CreateRequerimentoDto) {
-    return this.requerimentosService.create(createRequerimentoDto);
-  }
-
+  
   @Get()
   findAll() {
     return this.requerimentosService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.requerimentosService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.requerimentosService.findOne(id);
+  }
+
+  findAllforId(@Param('id', ParseIntPipe) id: number){
+    return this.requerimentosService.findAllRequerimentsUser(id);
+  }
+
+  @HttpCode(201)
+  @Post()
+  create(@Body() createRequerimentoDto: CreateRequerimentoDto) {
+    return this.requerimentosService.create(createRequerimentoDto);
   }
 
   @Patch(':id')
@@ -27,8 +32,9 @@ export class RequerimentosController {
     return this.requerimentosService.update(+id, updateRequerimentoDto);
   }
 
+  @HttpCode(204)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.requerimentosService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.requerimentosService.remove(id);
   }
 }
