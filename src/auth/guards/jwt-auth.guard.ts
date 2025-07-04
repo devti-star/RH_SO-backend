@@ -1,5 +1,6 @@
 import { ExecutionContext, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
+import { JwtService } from "@nestjs/jwt";
 import { AuthGuard } from "@nestjs/passport";
 import { Observable } from "rxjs";
 import { IS_PUBLIC_KEY } from "src/shared/decorators/is-public.decorator";

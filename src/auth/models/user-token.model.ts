@@ -1,4 +1,4 @@
 export interface UserToken {
-    acess_token: string;
+    access_token: string;
     token_type: string;
 }
