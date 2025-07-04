@@ -3,9 +3,9 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Documento } from './entities/documento.entity';
-import * as fs from 'fs';
 import * as path from 'path';
 import { Requerimento } from '../requerimentos/entities/requerimento.entity';
+import { FileStorageService } from '../shared/services/file-storage.service';
 
 @Injectable()
 export class DocumentosService {
@@ -14,10 +14,8 @@ export class DocumentosService {
   constructor(
     @InjectRepository(Documento)
     private readonly repo: Repository<Documento>,
+    private readonly fileStorage: FileStorageService,
   ) {
-    if (!fs.existsSync(this.uploadDir)) {
-      fs.mkdirSync(this.uploadDir, { recursive: true });
-    }
   }
 
   async create(requerimentoId: number, file: Express.Multer.File): Promise<Documento> {
@@ -31,11 +29,10 @@ export class DocumentosService {
     const destino = path.join(this.uploadDir, filename);
     await fs.promises.writeFile(destino, file.buffer);
 
-    // Aqui passamos o objeto parcial de Requerimento
-   const doc = this.repo.create({
-    caminho: filename,
-    requerimento: { id: requerimentoId } as Requerimento,
-  });
-  return this.repo.save(doc);
-    }
+    const doc = this.repo.create({
+      caminho: filename,
+      requerimento: { id: requerimentoId } as Requerimento,
+    });
+    return this.repo.save(doc);
+  }
 }
