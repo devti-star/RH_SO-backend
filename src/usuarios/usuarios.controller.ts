@@ -16,6 +16,7 @@ import { UsuariosService } from "./usuarios.service";
 import { CreateUsuarioDto } from "./dto/create-usuario.dto";
 import { UpdateUsuarioDto } from "./dto/update-usuario.dto";
 import { UsuarioResponseDto } from "./dto/usuario-response.dto";
+import { MailService } from 'src/mail/mail.service';
 import { RolesGuard } from "src/auth/guards/roles.guard";
 import { Roles } from "src/shared/decorators/roles.decorator";
 import { Role } from "src/enums/role.enum";
@@ -26,13 +27,27 @@ import { Usuario } from "./entities/usuario.entity";
 @UseGuards(RolesGuard)
 @Controller("usuarios")
 export class UsuariosController {
-  constructor(private readonly usuariosService: UsuariosService) {}
+  constructor(
+    private readonly usuariosService: UsuariosService,
+    private readonly mailService: MailService
+  ) {}
 
   @IsPublic()
   @Post()
   async create(@Body() createUsuarioDto: CreateUsuarioDto) {
-    await this.usuariosService.criar(createUsuarioDto);
-    return { message: "Usuário criado com sucesso!" };
+    const usuario = await this.usuariosService.criar(createUsuarioDto);
+    
+    // Enviar email de ativação
+    await this.mailService.sendActivationEmail(
+      usuario.email,
+      usuario.nomeCompleto,
+      usuario.activationToken
+    );
+    
+    return { 
+      message: "Usuário criado com sucesso! Verifique seu email para ativar a conta.",
+      userId: usuario.id
+    };
   }
 
   @Roles(

@@ -13,6 +13,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Usuario, Medico, Enfermeiro } from "./entities/usuario.entity";
 import { Role } from "src/enums/role.enum";
 import { compareSync, hashSync } from "bcrypt";
+import * as crypto from 'crypto';
 
 @Injectable()
 export class UsuariosService {
@@ -25,10 +26,35 @@ export class UsuariosService {
     private readonly repositorioEnfermeiro: Repository<Enfermeiro>
   ) {}
 
-  async criar(createUsuarioDto: CreateUsuarioDto) {
+  async activateUser(userId: number): Promise<void> {
+    await this.repositorioUsuario.update(userId, {
+      isActive: true,
+      activatedAt: new Date(),
+    });
+  }
+
+  async activateByToken(token: string): Promise<Usuario> {
+    const usuario = await this.repositorioUsuario.findOne({ 
+      where: { activationToken: token } 
+    });
+    
+    if (!usuario) {
+      throw new NotFoundException('Token de ativação inválido');
+    }
+    
+    await this.activateUser(usuario.id);
+    return usuario;
+  }
+
+  async criar(createUsuarioDto: CreateUsuarioDto): Promise<Usuario | Medico | Enfermeiro> {
     try {
       const novoUsuario = this.criaUsuarioPorRole(createUsuarioDto);
-      await this.salvaUsuarioPorRole(novoUsuario);
+      
+      // Gerar token de ativação
+      novoUsuario.activationToken = crypto.randomBytes(32).toString('hex');
+      novoUsuario.isActive = false;
+      
+      return await this.salvaUsuarioPorRole(novoUsuario);
     } catch (error) {
       throw new BadRequestException(error.message || "Erro ao criar usuário.");
     }
@@ -57,25 +83,26 @@ export class UsuariosService {
   }
 
   private entityToResponseDto(usuario: Usuario): UsuarioResponseDto {
-  return {
-    id:usuario.id,
-    nomeCompleto: usuario.nomeCompleto,
-    email: usuario.email,
-    cpf: usuario.cpf,
-    matricula: usuario.matricula,
-    departamento: usuario.departamento,
-    secretaria: usuario.secretaria,
-    telefone: usuario.telefone,
-    cargo: usuario.cargo,
-    foto: usuario.foto,
-    role: usuario.role,
-    rgNumero: usuario.rg?.numeroRG,
-    rgOrgaoExpeditor: usuario.rg?.orgãoExpeditor,
-    crm: (usuario as any).crm,
-    cre: (usuario as any).cre,
-  } as UsuarioResponseDto;
 
-}
+    return {
+      id: usuario.id,
+      nomeCompleto: usuario.nomeCompleto,
+      email: usuario.email,
+      cpf: usuario.cpf,
+      matricula: usuario.matricula,
+      departamento: usuario.departamento,
+      secretaria: usuario.secretaria,
+      telefone: usuario.telefone,
+      cargo: usuario.cargo,
+      foto: usuario.foto,
+      role: usuario.role,
+      rgNumero: usuario.rg?.numeroRG,
+      rgOrgaoExpeditor: usuario.rg?.orgãoExpeditor,
+      crm: (usuario as any).crm, // Só vai existir em médico
+      cre: (usuario as any).cre, // Só vai existir em enfermeiro
+      isActive: usuario.isActive,
+    } as UsuarioResponseDto;
+  }
 
 
   async findByEmail(
@@ -120,6 +147,7 @@ export class UsuariosService {
     id: number,
     updateUsuarioDto: UpdateUsuarioDto
   ): Promise<UsuarioResponseDto> {
+
     const usuario = await this.repositorioUsuario.findOne({
       where: { id },
       relations: { rg: true },
@@ -245,7 +273,7 @@ export class UsuariosService {
     }
   }
 
-  private salvaUsuarioPorRole(usuario: Usuario | Medico | Enfermeiro) {
+  private async salvaUsuarioPorRole(usuario: Usuario | Medico | Enfermeiro): Promise<Usuario | Medico | Enfermeiro> {
     switch (usuario.role) {
       case Role.PADRAO:
       case Role.TRIAGEM:
