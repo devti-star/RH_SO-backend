@@ -23,6 +23,7 @@ import { Role } from "src/enums/role.enum";
 import { IsPublic } from "src/shared/decorators/is-public.decorator";
 import { CurrentUser } from "src/shared/decorators/current-user.decorator";
 import { Usuario } from "./entities/usuario.entity";
+import { DefaultIdGuard } from "src/auth/guards/check-id-default-user.guard";
 
 @UseGuards(RolesGuard)
 @Controller("usuarios")
@@ -70,6 +71,7 @@ export class UsuariosController {
       Demais roles tem acesso limitado às informações dos demais usuários (rg e cpf ficam de fora)
   */
   @Get(":id")
+  @UseGuards(DefaultIdGuard)
   async findOne(
     @Param("id", ParseIntPipe) id: number,
     @CurrentUser() usuario: Usuario
