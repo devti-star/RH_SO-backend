@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CreateRequerimentoDto } from './dto/create-requerimento.dto';
 import { UpdateRequerimentoDto } from './dto/update-requerimento.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,6 +16,7 @@ export class RequerimentosService {
     @InjectRepository(Requerimento)
     private readonly repositorioRequerimento: Repository<Requerimento>,
 
+    @Inject(forwardRef(() => UsuariosService))
     private readonly usuarioService: UsuariosService
   ){}
 
