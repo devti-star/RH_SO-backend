@@ -39,9 +39,9 @@ import { DocumentosModule } from './documentos/documentos.module';
     AuthModule,
     DocumentosModule,
   ],
+
   controllers: [AppController, ActivationController],
   providers: [AppService, { provide: APP_GUARD, useClass: JwtAuthGuard }],
-
 })
 export class AppModule {}
 

@@ -8,6 +8,9 @@ import {
   Delete,
   Query,
   UseGuards,
+  ParseIntPipe,
+  HttpException,
+  HttpStatus,
 } from "@nestjs/common";
 import { UsuariosService } from "./usuarios.service";
 import { CreateUsuarioDto } from "./dto/create-usuario.dto";
@@ -18,8 +21,9 @@ import { RolesGuard } from "src/auth/guards/roles.guard";
 import { Roles } from "src/shared/decorators/roles.decorator";
 import { Role } from "src/enums/role.enum";
 import { IsPublic } from "src/shared/decorators/is-public.decorator";
+import { CurrentUser } from "src/shared/decorators/current-user.decorator";
+import { Usuario } from "./entities/usuario.entity";
 
-@IsPublic()
 @UseGuards(RolesGuard)
 @Controller("usuarios")
 export class UsuariosController {
@@ -28,6 +32,7 @@ export class UsuariosController {
     private readonly mailService: MailService
   ) {}
 
+  @IsPublic()
   @Post()
   async create(@Body() createUsuarioDto: CreateUsuarioDto) {
     const usuario = await this.usuariosService.criar(createUsuarioDto);
@@ -45,32 +50,49 @@ export class UsuariosController {
     };
   }
 
-  @Roles(Role.ADMIN, Role.ENFERMEIRO, Role.MEDICO, Role.PS, Role.RH, Role.TRIAGEM)
+  @Roles(
+    Role.ADMIN,
+    Role.ENFERMEIRO,
+    Role.MEDICO,
+    Role.PS,
+    Role.RH,
+    Role.TRIAGEM
+  )
   @Get()
   findAll() {
     return this.usuariosService.findAll();
   }
 
-  
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<UsuarioResponseDto> {
-    return this.usuariosService.findOne(+id);
-  }
-  
+  // Implementado
+  /*  
+      Apenas médico e admin podem ver todas as infomações de qualquer usuário
+      Usuário padrão vê apenas as próprias informações
+      Demais roles tem acesso limitado às informações dos demais usuários (rg e cpf ficam de fora)
+  */
+  @Get(":id")
+  async findOne(
+    @Param("id", ParseIntPipe) id: number,
+    @CurrentUser() usuario: Usuario
+  ): Promise<Partial<UsuarioResponseDto>> {
+    const campos = this.usuariosService.getColumnsforUser(usuario, id);
 
-  @Get('buscar/email')
+    return this.usuariosService.findOne(+id, campos);
+  }
+
+  @Get("buscar/email")
   @Roles(Role.ADMIN)
-  findByEmail(@Query('email') email: string) {
+  findByEmail(@Query("email") email: string) {
     return this.usuariosService.findByEmail(email);
   }
 
-
   @Patch(":id")
-  async update(@Param("id") id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {
+  async update(
+    @Param("id") id: string,
+    @Body() updateUsuarioDto: UpdateUsuarioDto
+  ) {
     await this.usuariosService.update(+id, updateUsuarioDto);
     return { message: "Usuário atualizado com sucesso." };
   }
-
 
   @Delete(":id")
   remove(@Param("id") id: string) {
