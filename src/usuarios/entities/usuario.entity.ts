@@ -34,7 +34,7 @@ export class Usuario {
     this.nomeCompleto = nomeCompleto;
     this.email = email;
     this.cpf = cpf;
-    this.rg = new RG(this, numeroRg, orgaoExpeditor);
+    this.rg = new RG(numeroRg, orgaoExpeditor);
     this.senha = senha;
     this.matricula = matricula;
     this.cargo = cargo;
@@ -56,7 +56,7 @@ export class Usuario {
   @Column({ length: 25, unique: true })
   cpf: string;
 
-  @OneToOne(() => RG, (rg) => rg.proprietario, { cascade: true })
+  @OneToOne(() => RG, { cascade: true }) 
   @JoinColumn()
   rg: RG;
 

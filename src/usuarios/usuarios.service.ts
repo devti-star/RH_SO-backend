@@ -78,30 +78,8 @@ export class UsuariosService {
     if (!usuario) {
       throw new NotFoundException(`Usuário com id ${id} não encontrado.`);
     }
-
-    return this.entityToResponseDto(usuario);
-  }
-
-  private entityToResponseDto(usuario: Usuario): UsuarioResponseDto {
-
-    return {
-      id: usuario.id,
-      nomeCompleto: usuario.nomeCompleto,
-      email: usuario.email,
-      cpf: usuario.cpf,
-      matricula: usuario.matricula,
-      departamento: usuario.departamento,
-      secretaria: usuario.secretaria,
-      telefone: usuario.telefone,
-      cargo: usuario.cargo,
-      foto: usuario.foto,
-      role: usuario.role,
-      rgNumero: usuario.rg?.numeroRG,
-      rgOrgaoExpeditor: usuario.rg?.orgãoExpeditor,
-      crm: (usuario as any).crm, // Só vai existir em médico
-      cre: (usuario as any).cre, // Só vai existir em enfermeiro
-      isActive: usuario.isActive,
-    } as UsuarioResponseDto;
+    const usuarioResponse: UsuarioResponseDto = new UsuarioResponseDto(usuario);
+    return usuarioResponse;
   }
 
 
@@ -118,13 +96,8 @@ export class UsuariosService {
     if (!usuario) {
       throw new NotFoundException(`Usuário com email ${email} não encontrado.`);
     }
-
-    if (incluirSenha) {
-      return usuario;
-    } else {
-      const { senha, ...resultado } = usuario;
-      return resultado as UsuarioResponseDto;
-    }
+    const usuarioResponse: UsuarioResponseDto = new UsuarioResponseDto(usuario);
+    return usuarioResponse;
   }
 
   async findByEmailcomSenha(email: string): Promise<Usuario> {
@@ -206,7 +179,8 @@ export class UsuariosService {
     }
 
     await this.repositorioUsuario.save(usuario);
-    return this.entityToResponseDto(usuario);
+    const usuarioResponse: UsuarioResponseDto = new UsuarioResponseDto(usuario);
+    return usuarioResponse;
   }
 
   remove(id: number) {
