@@ -8,7 +8,7 @@ export class UsuarioResponseDto {
   secretaria?: string;
   telefone?: string;
   cargo?: string;
-  foto?: string;
+  foto?: string | null;
   role?: number; // Ou 'Role' se quiser importar o enum
 
   // Dados do RG (quando existirem)

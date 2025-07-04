@@ -97,10 +97,10 @@ export class UsuariosService {
     }
 
     if (incluirSenha){
-      return usuario;
+      return this.entityToResponseDto(usuario);
     } else {
       const { senha, ...resultado} = usuario;
-      return resultado as UsuarioResponseDto
+      return resultado as UsuarioResponseDto;
     }
   }
 

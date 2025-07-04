@@ -79,7 +79,7 @@ export class Usuario {
   senha?: string;
 
   @Column({ nullable: true })
-  foto: string;
+  foto: string | null;
 
   @Column({ type: "int" })
   role: Role;
