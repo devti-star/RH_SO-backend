@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Request } from "express";
 import { Role } from "src/enums/role.enum";
@@ -22,7 +22,7 @@ export class DefaultIdGuard implements CanActivate{
         if (user.role !== Role.PADRAO) return true; 
 
         // O usuário é padrão e tentou acessar dados que não lhe pertencem. Safado, achou que podia burlar o front
-        if (user.id !== id_petitioner) return false;
+        if (user.id !== id_petitioner) throw new UnauthorizedException();
 
         return true;
     }
