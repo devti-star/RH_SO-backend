@@ -1,6 +1,8 @@
+
 import { Exclude, Expose} from "class-transformer";
 import { Usuario } from "../entities/usuario.entity";
 import { Role } from "src/enums/role.enum";
+import { RG } from "src/rg/entities/rg.entity";
 
 
 export class UsuarioResponseDto {
@@ -31,3 +33,4 @@ export class UsuarioResponseDto {
   role: Role;
 
 }
+

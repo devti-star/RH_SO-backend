@@ -12,7 +12,7 @@ import {
 import { Role } from "../../enums/role.enum";
 import { Requerimento } from "../../requerimentos/entities/requerimento.entity";
 import { hashSync } from "bcrypt";
-import { RG } from "src/rg/entities/rg.entity";
+import { RG } from "../../rg/entities/rg.entity";
 
 @Entity()
 @TableInheritance({ column: { type: "varchar", name: "type" } })
@@ -76,7 +76,7 @@ export class Usuario {
   cargo: string;
 
   @Column({ select: false })
-  senha: string;
+  senha?: string;
 
   @Column({ nullable: true })
   foto: string;
@@ -93,6 +93,15 @@ export class Usuario {
       this.senha = hashSync(this.senha, 10);
     }
   }
+
+  @Column({ default: false })
+  isActive: boolean;
+
+  @Column({ nullable: true, type: 'timestamp' })
+  activatedAt: Date;
+
+  @Column({ nullable: true })
+  activationToken: string;
 }
 
 @ChildEntity()

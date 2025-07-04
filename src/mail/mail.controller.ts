@@ -1,5 +1,5 @@
 // email.controller.ts
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get } from '@nestjs/common';
 import { MailService } from './mail.service';
 
 @Controller('emails')

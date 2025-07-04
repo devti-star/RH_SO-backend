@@ -26,7 +26,7 @@ export class CreateUsuarioDto {
   cpf: string;
 
   @IsString()
-  @Length(12)
+  @Length(9)
   rg: string;
 
   @IsString()
