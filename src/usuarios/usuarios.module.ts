@@ -6,6 +6,7 @@ import { Usuario, Medico, Enfermeiro } from "./entities/usuario.entity";
 import { Requerimento } from "src/requerimentos/entities/requerimento.entity";
 import { RequerimentosModule } from "src/requerimentos/requerimentos.module";
 import { MailModule } from 'src/mail/mail.module';
+import { FilesModule } from '../files/files.module';
 
 
 @Module({
@@ -14,7 +15,8 @@ import { MailModule } from 'src/mail/mail.module';
   imports: [
     TypeOrmModule.forFeature([Usuario, Medico, Enfermeiro]),
     forwardRef(() => RequerimentosModule),
-  MailModule
+    MailModule,
+    FilesModule,
   ],
   exports: [TypeOrmModule, UsuariosService],
 })
