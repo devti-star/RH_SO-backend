@@ -13,7 +13,9 @@ import { CreateUsuarioDto } from "./dto/create-usuario.dto";
 import { UpdateUsuarioDto } from "./dto/update-usuario.dto";
 import { UsuarioResponseDto } from "./dto/usuario-response.dto";
 import { MailService } from 'src/mail/mail.service';
+import { IsPublic } from "src/shared/decorators/is-public.decorator";
 
+@IsPublic()
 @Controller("usuarios")
 export class UsuariosController {
   constructor(

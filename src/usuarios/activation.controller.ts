@@ -1,7 +1,9 @@
 import { Controller, Get, Query, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { UsuariosService } from './usuarios.service';
+import { IsPublic } from 'src/shared/decorators/is-public.decorator';
 
+@IsPublic()
 @Controller('auth')
 export class ActivationController {
   constructor(

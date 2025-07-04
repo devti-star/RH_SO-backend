@@ -17,6 +17,12 @@ async function bootstrap() {
     '<h1>Sucesso!</h1><p>Este é um teste de configuração SMTP</p>'
   );
   */
+
+  app.enableCors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+  });
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
