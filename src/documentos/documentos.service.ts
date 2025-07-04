@@ -26,7 +26,8 @@ export class DocumentosService {
     }
 
     const timestamp = Date.now();
-    const filename = `${timestamp}-${file.originalname}`;
+    const safeName = path.basename(file.originalname);
+    const filename = `${timestamp}-${safeName}`;
     const destino = path.join(this.uploadDir, filename);
     await fs.promises.writeFile(destino, file.buffer);
 
