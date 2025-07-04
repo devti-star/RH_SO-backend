@@ -11,6 +11,8 @@ import {
   ParseIntPipe,
   HttpException,
   HttpStatus,
+  UseInterceptors,
+  UploadedFile,
 } from "@nestjs/common";
 import { UsuariosService } from "./usuarios.service";
 import { CreateUsuarioDto } from "./dto/create-usuario.dto";
@@ -23,6 +25,8 @@ import { Role } from "src/enums/role.enum";
 import { IsPublic } from "src/shared/decorators/is-public.decorator";
 import { CurrentUser } from "src/shared/decorators/current-user.decorator";
 import { Usuario } from "./entities/usuario.entity";
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 
 @UseGuards(RolesGuard)
 @Controller("usuarios")
@@ -92,6 +96,21 @@ export class UsuariosController {
   ) {
     await this.usuariosService.update(+id, updateUsuarioDto);
     return { message: "Usuário atualizado com sucesso." };
+  }
+
+  @Patch(":id/foto")
+  @UseInterceptors(
+    FileInterceptor('foto', {
+      storage: memoryStorage(),
+      limits: { fileSize: 10 * 1024 * 1024 },
+    }),
+  )
+  async uploadFoto(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    await this.usuariosService.uploadFoto(id, file);
+    return { message: 'Foto atualizada com sucesso.' };
   }
 
   @Delete(":id")

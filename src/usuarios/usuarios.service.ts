@@ -14,6 +14,7 @@ import { Usuario, Medico, Enfermeiro } from "./entities/usuario.entity";
 import { Role } from "src/enums/role.enum";
 import { compareSync, hashSync } from "bcrypt";
 import * as crypto from 'crypto';
+import { FilesService } from '../files/files.service';
 
 @Injectable()
 export class UsuariosService {
@@ -23,7 +24,8 @@ export class UsuariosService {
     @InjectRepository(Medico)
     private readonly repositorioMedico: Repository<Medico>,
     @InjectRepository(Enfermeiro)
-    private readonly repositorioEnfermeiro: Repository<Enfermeiro>
+    private readonly repositorioEnfermeiro: Repository<Enfermeiro>,
+    private readonly filesService: FilesService,
   ) {}
 
   async activateUser(userId: number): Promise<void> {
@@ -181,6 +183,19 @@ export class UsuariosService {
     await this.repositorioUsuario.save(usuario);
     const usuarioResponse: UsuarioResponseDto = new UsuarioResponseDto(usuario);
     return usuarioResponse;
+  }
+
+  async uploadFoto(id: number, file: Express.Multer.File): Promise<UsuarioResponseDto> {
+    const usuario = await this.repositorioUsuario.findOne({ where: { id } });
+
+    if (!usuario) {
+      throw new NotFoundException(`Usuário com id ${id} não encontrado.`);
+    }
+
+    const filename = await this.filesService.save(file, 'fotos');
+    usuario.foto = filename;
+    await this.repositorioUsuario.save(usuario);
+    return new UsuarioResponseDto(usuario);
   }
 
   remove(id: number) {
