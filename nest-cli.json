@@ -3,8 +3,15 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
   "compilerOptions": {
-        "assets": [
-      "**/*.hbs"
+    "assets": [
+      {
+        "include": "**/*.hbs",
+        "outDir": "dist"
+      },
+      {
+        "include": "mail/templates/assets/**/*",
+        "outDir": "dist"
+      }
     ],
     "deleteOutDir": true
   }
