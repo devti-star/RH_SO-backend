@@ -9,6 +9,7 @@ import {
   Delete,
   Query,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
