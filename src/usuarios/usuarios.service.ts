@@ -7,9 +7,12 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Usuario, Medico, Enfermeiro } from "./entities/usuario.entity";
 import { Role } from "src/enums/role.enum";
 import { compareSync, hashSync } from "bcrypt";
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class UsuariosService {
+  private imagemPerfilDir = path.resolve(__dirname, '../../ImagemPerfil');
   constructor(
     @InjectRepository(Usuario)
     private readonly repositorioUsuario: Repository<Usuario>,
@@ -17,14 +20,29 @@ export class UsuariosService {
     private readonly repositorioMedico: Repository<Medico>,
     @InjectRepository(Enfermeiro)
     private readonly repositorioEnfermeiro: Repository<Enfermeiro>
-  ) {}
+  ) {
+    if (!fs.existsSync(this.imagemPerfilDir)) {
+      fs.mkdirSync(this.imagemPerfilDir, { recursive: true });
+    }
+  }
 
-  async criar(createUsuarioDto: CreateUsuarioDto) {
+  async criar(createUsuarioDto: CreateUsuarioDto, file?: Express.Multer.File): Promise<UsuarioResponseDto> {
     try {
       const novoUsuario = this.criaUsuarioPorRole(createUsuarioDto);
-      await this.salvaUsuarioPorRole(novoUsuario);
+      novoUsuario.foto = null;
+      let usuario = (await this.salvaUsuarioPorRole(novoUsuario)) as Usuario;
+
+      if (file) {
+        const ext = path.extname(file.originalname).toLowerCase();
+        const filename = `${usuario.id}${ext}`;
+        await fs.promises.writeFile(path.join(this.imagemPerfilDir, filename), file.buffer);
+        usuario.foto = path.join('ImagemPerfil', filename);
+        usuario = await this.repositorioUsuario.save(usuario);
+      }
+
+      return this.entityToResponseDto(usuario);
     } catch (error) {
-      throw new BadRequestException(error.message || "Erro ao criar usuário.");
+      throw new BadRequestException(error.message || 'Erro ao criar usuário.');
     }
   }
 
@@ -104,7 +122,7 @@ export class UsuariosService {
 
 // ...restante do código
 
-  async update(id: number, updateUsuarioDto: UpdateUsuarioDto): Promise<UsuarioResponseDto> {
+  async update(id: number, updateUsuarioDto: UpdateUsuarioDto, file?: Express.Multer.File): Promise<UsuarioResponseDto> {
     const usuario = await this.repositorioUsuario.findOne({
       where: { id },
       relations: { rg: true },
@@ -121,7 +139,18 @@ export class UsuariosService {
     if (updateUsuarioDto.secretaria !== undefined) usuario.secretaria = updateUsuarioDto.secretaria;
     if (updateUsuarioDto.telefone !== undefined) usuario.telefone = updateUsuarioDto.telefone;
     if (updateUsuarioDto.cargo !== undefined) usuario.cargo = updateUsuarioDto.cargo;
-    if (updateUsuarioDto.foto !== undefined) usuario.foto = updateUsuarioDto.foto;
+
+    if (file) {
+      const ext = path.extname(file.originalname).toLowerCase();
+      const filename = `${usuario.id}${ext}`;
+      if (usuario.foto) {
+        await fs.promises
+          .unlink(path.join(this.imagemPerfilDir, path.basename(usuario.foto)))
+          .catch(() => undefined);
+      }
+      await fs.promises.writeFile(path.join(this.imagemPerfilDir, filename), file.buffer);
+      usuario.foto = path.join('ImagemPerfil', filename);
+    }
 
     // Atualização de senha exige senha atual
     if (updateUsuarioDto.senha !== undefined) {
