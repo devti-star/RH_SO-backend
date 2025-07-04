@@ -3,12 +3,15 @@ import {
   Get,
   Post,
   Body,
+  UploadedFile,
   Patch,
   Param,
   Delete,
   Query,
   UseGuards,
 } from "@nestjs/common";
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import { UsuariosService } from "./usuarios.service";
 import { CreateUsuarioDto } from "./dto/create-usuario.dto";
 import { UpdateUsuarioDto } from "./dto/update-usuario.dto";
@@ -25,9 +28,22 @@ export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
 
   @Post()
-  async create(@Body() createUsuarioDto: CreateUsuarioDto) {
-    await this.usuariosService.criar(createUsuarioDto);
-    return { message: "Usuário criado com sucesso!" };
+  @UseInterceptors(
+    FileInterceptor('imagemPerfil', {
+      storage: memoryStorage(),
+      limits: { fileSize: 2 * 1024 * 1024 },
+      fileFilter: (_req, file, cb) => {
+        const allowed = ['image/jpeg', 'image/png'];
+        cb(null, allowed.includes(file.mimetype));
+      },
+    }),
+  )
+  async create(
+    @UploadedFile() imagemPerfil: Express.Multer.File,
+    @Body() createUsuarioDto: CreateUsuarioDto,
+  ) {
+    const usuario = await this.usuariosService.criar(createUsuarioDto, imagemPerfil);
+    return { message: 'Usuário criado com sucesso!', imagemPerfil: usuario.foto };
   }
 
   @Roles(Role.ADMIN, Role.ENFERMEIRO, Role.MEDICO, Role.PS, Role.RH, Role.TRIAGEM)
@@ -51,9 +67,23 @@ export class UsuariosController {
 
 
   @Patch(":id")
-  async update(@Param("id") id: string, @Body() updateUsuarioDto: UpdateUsuarioDto) {
-    await this.usuariosService.update(+id, updateUsuarioDto);
-    return { message: "Usuário atualizado com sucesso." };
+  @UseInterceptors(
+    FileInterceptor('imagemPerfil', {
+      storage: memoryStorage(),
+      limits: { fileSize: 2 * 1024 * 1024 },
+      fileFilter: (_req, file, cb) => {
+        const allowed = ['image/jpeg', 'image/png'];
+        cb(null, allowed.includes(file.mimetype));
+      },
+    }),
+  )
+  async update(
+    @Param("id") id: string,
+    @UploadedFile() imagemPerfil: Express.Multer.File,
+    @Body() updateUsuarioDto: UpdateUsuarioDto,
+  ) {
+    const usuario = await this.usuariosService.update(+id, updateUsuarioDto, imagemPerfil);
+    return { message: "Usuário atualizado com sucesso.", imagemPerfil: usuario.foto };
   }
 
 
