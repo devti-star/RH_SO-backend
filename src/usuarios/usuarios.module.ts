@@ -3,7 +3,6 @@ import { UsuariosService } from "./usuarios.service";
 import { UsuariosController } from "./usuarios.controller";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Usuario, Medico, Enfermeiro } from "./entities/usuario.entity";
-import { Requerimento } from "src/requerimentos/entities/requerimento.entity";
 import { RequerimentosModule } from "src/requerimentos/requerimentos.module";
 import { MailModule } from 'src/mail/mail.module';
 
@@ -14,7 +13,7 @@ import { MailModule } from 'src/mail/mail.module';
   imports: [
     TypeOrmModule.forFeature([Usuario, Medico, Enfermeiro]),
     forwardRef(() => RequerimentosModule),
-  MailModule
+    MailModule,
   ],
   exports: [TypeOrmModule, UsuariosService],
 })

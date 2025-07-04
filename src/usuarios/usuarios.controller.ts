@@ -11,6 +11,7 @@ import {
   ParseIntPipe,
   HttpException,
   HttpStatus,
+  HttpCode,
 } from "@nestjs/common";
 import { UsuariosService } from "./usuarios.service";
 import { CreateUsuarioDto } from "./dto/create-usuario.dto";
@@ -33,6 +34,7 @@ export class UsuariosController {
   ) {}
 
   @IsPublic()
+  @HttpCode(201)
   @Post()
   async create(@Body() createUsuarioDto: CreateUsuarioDto) {
     const usuario = await this.usuariosService.criar(createUsuarioDto);
@@ -63,6 +65,11 @@ export class UsuariosController {
     return this.usuariosService.findAll();
   }
 
+  @Get(':id/requerimentos')
+  findAllRequerimentosOfUser(@Param('id', ParseIntPipe) id: number){
+    return this.usuariosService.findAllRequerimentsOfUser(id);
+  }
+
   // Implementado
   /*  
       Apenas médico e admin podem ver todas as infomações de qualquer usuário
@@ -87,15 +94,16 @@ export class UsuariosController {
 
   @Patch(":id")
   async update(
-    @Param("id") id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateUsuarioDto: UpdateUsuarioDto
   ) {
-    await this.usuariosService.update(+id, updateUsuarioDto);
+    await this.usuariosService.update(id, updateUsuarioDto);
     return { message: "Usuário atualizado com sucesso." };
   }
 
+  @HttpCode(204)
   @Delete(":id")
-  remove(@Param("id") id: string) {
-    return this.usuariosService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.usuariosService.remove(id);
   }
 }
