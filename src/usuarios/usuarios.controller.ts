@@ -59,29 +59,7 @@ export class UsuariosController {
     @Param("id", ParseIntPipe) id: number,
     @CurrentUser() usuario: Usuario
   ): Promise<Partial<UsuarioResponseDto>> {
-    const campos = [
-      "nomeCompleto",
-      "cpf",
-      "rg",
-      "email",
-      "matricula",
-      "secretaria",
-      "departamento",
-      "telefone",
-      "cargo",
-    ] as (keyof UsuarioResponseDto)[];
-
-    if (usuario.role !== Role.PADRAO) {
-      if (usuario.role === Role.ADMIN || usuario.role === Role.MEDICO)
-        return this.usuariosService.findOne(+id, campos);
-      return this.usuariosService.findOne(
-        +id,
-        campos.filter((campo) => campo !== "cpf" && campo !== "rg")
-      );
-    }
-
-    if (usuario.id !== id)
-      throw new HttpException(`Acesso não autorizado`, HttpStatus.FORBIDDEN);
+    const campos = this.usuariosService.getColumnsforUser(usuario, id);
 
     return this.usuariosService.findOne(+id, campos);
   }
