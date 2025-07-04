@@ -7,6 +7,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Usuario, Medico, Enfermeiro } from "./entities/usuario.entity";
 import { Role } from "src/enums/role.enum";
 import { compareSync, hashSync } from "bcrypt";
+import * as crypto from 'crypto';
 
 @Injectable()
 export class UsuariosService {
@@ -19,10 +20,35 @@ export class UsuariosService {
     private readonly repositorioEnfermeiro: Repository<Enfermeiro>
   ) {}
 
-  async criar(createUsuarioDto: CreateUsuarioDto) {
+  async activateUser(userId: number): Promise<void> {
+    await this.repositorioUsuario.update(userId, {
+      isActive: true,
+      activatedAt: new Date(),
+    });
+  }
+
+  async activateByToken(token: string): Promise<Usuario> {
+    const usuario = await this.repositorioUsuario.findOne({ 
+      where: { activationToken: token } 
+    });
+    
+    if (!usuario) {
+      throw new NotFoundException('Token de ativação inválido');
+    }
+    
+    await this.activateUser(usuario.id);
+    return usuario;
+  }
+
+  async criar(createUsuarioDto: CreateUsuarioDto): Promise<Usuario | Medico | Enfermeiro> {
     try {
       const novoUsuario = this.criaUsuarioPorRole(createUsuarioDto);
-      await this.salvaUsuarioPorRole(novoUsuario);
+      
+      // Gerar token de ativação
+      novoUsuario.activationToken = crypto.randomBytes(32).toString('hex');
+      novoUsuario.isActive = false;
+      
+      return await this.salvaUsuarioPorRole(novoUsuario);
     } catch (error) {
       throw new BadRequestException(error.message || "Erro ao criar usuário.");
     }
@@ -63,6 +89,7 @@ export class UsuariosService {
       rgOrgaoExpeditor: usuario.rg?.orgãoExpeditor,
       crm: (usuario as any).crm, // Só vai existir em médico
       cre: (usuario as any).cre, // Só vai existir em enfermeiro
+      isActive: usuario.isActive,
     } as UsuarioResponseDto;
   }
 
@@ -82,7 +109,7 @@ export class UsuariosService {
       return usuario;
     } else {
       const { senha, ...resultado} = usuario;
-      return resultado as UsuarioResponseDto
+      return resultado as UsuarioResponseDto;
     }
   }
 
@@ -99,10 +126,6 @@ export class UsuariosService {
 
     return usuario;
   }
-
-
-
-// ...restante do código
 
   async update(id: number, updateUsuarioDto: UpdateUsuarioDto): Promise<UsuarioResponseDto> {
     const usuario = await this.repositorioUsuario.findOne({
@@ -141,7 +164,6 @@ export class UsuariosService {
     await this.repositorioUsuario.save(usuario);
     return this.entityToResponseDto(usuario);
   }
-
 
   remove(id: number) {
     return `This action removes a #${id} usuario`;
@@ -207,7 +229,7 @@ export class UsuariosService {
     }
   }
 
-  private salvaUsuarioPorRole(usuario: Usuario | Medico | Enfermeiro) {
+  private async salvaUsuarioPorRole(usuario: Usuario | Medico | Enfermeiro): Promise<Usuario | Medico | Enfermeiro> {
     switch (usuario.role) {
       case Role.PADRAO:
       case Role.TRIAGEM:
@@ -220,47 +242,4 @@ export class UsuariosService {
         throw new Error("Role inválida");
     }
   }
-
-  // async findByEmail(
-  //   email: string,
-  //   includePassword: boolean = false,
-  //   role: Role
-  // ): Promise<Usuario | Enfermeiro | Medico | null> {
-  //   let usuario: Usuario | Enfermeiro | Medico | null = null;
-
-  //   switch (role) {
-  //     case Role.PADRAO:
-  //       usuario = await this.repositorioUsuario
-  //         .createQueryBuilder("usuario")
-  //         .addSelect(includePassword ? "usuario.senha" : "")
-  //         .where("usuario.email = :email", { email })
-  //         .getOne();
-  //       break;
-  //     case Role.MEDICO:
-  //       usuario = await this.repositorioMedico
-  //         .createQueryBuilder("medico")
-  //         .addSelect(includePassword ? "medico.senha" : "")
-  //         .where("medico.email = :email", { email })
-  //         .getOne();
-  //       break;
-  //     case Role.ENFERMEIRO:
-  //       usuario = await this.repositorioEnfermeiro
-  //         .createQueryBuilder("enfermeiro")
-  //         .addSelect(includePassword ? "enfermeiro.senha" : "")
-  //         .where("enfermeiro.email = :email", { email })
-  //         .getOne();
-  //       break;
-  //   }
-
-  //   if (!usuario) {
-  //     return null;
-  //   }
-
-  //   if (includePassword) {
-  //     return usuario;
-  //   } else {
-  //     const { senha, ...resultado } = usuario;
-  //     return resultado as Usuario;
-  //   }
-  // }
 }

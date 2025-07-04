@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailService } from './mail.service';
+import { join } from 'path';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter'; 
 
 @Module({
   imports: [
@@ -21,16 +23,23 @@ import { MailService } from './mail.service';
           tls: {
             rejectUnauthorized: false // Ignora erros de certificado
           },
-          logger: true, // Para ver logs detalhados
-          debug: true // Ativa modo debug
+          logger: false, // Para ver logs detalhados
+          debug: false // Ativa modo debug
         },
         defaults: {
           from: '"No Reply" <dev.ti@treslagoas.ms.gov.br>',
         },
+        template: {
+          dir: join(__dirname, 'templates'), // Caminho absoluto para templates
+          adapter: new HandlebarsAdapter(),
+          options: {
+            strict: true,
+          }
+        }
       }),
     }),
   ],
   providers: [MailService],
   exports: [MailService],
 })
-export class MailModule {}
+export class MailModule { }
