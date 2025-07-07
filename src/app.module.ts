@@ -11,7 +11,13 @@ import { MailModule } from "./mail/mail.module";
 import { AuthModule } from "./auth/auth.module";
 import { APP_FILTER, APP_GUARD } from "@nestjs/core";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
+import { CacheModule } from '@nestjs/cache-manager';
 import { ActivationController } from './usuarios/activation.controller';
+import { CachedService } from './shared/services/cached.service'
+import { ActivationModule } from './activation/activation.module';
+import { ActivateModule } from './src/usuarios/activate/activate.module';
+import { ActivateModule } from './activate/activate.module';
+import { ActivateController } from './activate/activate.controller';
 
 
 @Module({
@@ -30,16 +36,23 @@ import { ActivationController } from './usuarios/activation.controller';
       autoLoadEntities: true,
       synchronize: true,
     }),
+    CacheModule.register({
+      ttl: 1200000
+    }),
     UsuariosModule,
     MailModule,
     RequerimentosModule,
     HistoricosModule,
     RGModule,
     AuthModule,
+    ActivationModule,
+    ActivateModule,
   ],
-  controllers: [AppController, ActivationController],
+  controllers: [AppController, ActivationController, ActivateController],
   providers: [AppService, { provide: APP_GUARD, useClass: JwtAuthGuard }],
+
 })
 export class AppModule {}
+
 
 console.log("JWT_SECRET:", process.env.JWT_SECRET);

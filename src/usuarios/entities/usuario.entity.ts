@@ -100,8 +100,6 @@ export class Usuario {
   @Column({ nullable: true, type: 'timestamp' })
   activatedAt: Date;
 
-  @Column({ nullable: true })
-  activationToken: string;
 }
 
 @ChildEntity()
