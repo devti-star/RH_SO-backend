@@ -24,7 +24,7 @@ export class CreateUsuarioDto {
 
   @IsNotEmpty()
   @IsNumberString()
-  @Length(11, 14)
+  @Length(11)
   cpf: string;
 
   @IsString()
