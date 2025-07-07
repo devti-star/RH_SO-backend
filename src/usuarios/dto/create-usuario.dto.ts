@@ -6,8 +6,10 @@ import {
   IsEnum,
   IsNumberString,
   Length,
+  MinLength,
 } from "class-validator";
 import { Role } from "../../enums/role.enum";
+import { Type } from "class-transformer";
 
 export class CreateUsuarioDto {
   @IsNotEmpty()
@@ -30,7 +32,7 @@ export class CreateUsuarioDto {
   rg: string;
 
   @IsString()
-  @Length(12)
+  @MinLength(2)
   orgaoExpeditor: string;
 
   @IsOptional()
@@ -76,6 +78,7 @@ export class CreateUsuarioDto {
   @IsString()
   foto?: string;
 
+  @Type(() => Number)
   @IsNotEmpty()
   @IsEnum(Role)
   role: Role;

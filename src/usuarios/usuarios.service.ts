@@ -16,6 +16,8 @@ import { Usuario, Medico, Enfermeiro } from "./entities/usuario.entity";
 import { Role } from "src/enums/role.enum";
 import { compareSync, hashSync } from "bcrypt";
 import * as crypto from 'crypto';
+import * as fs from 'fs';
+import * as path from 'path';
 import { RequerimentosService } from "src/requerimentos/requerimentos.service";
 import { UsuarioNotFoundException } from "src/shared/exceptions/usuario-not-found.exception";
 
@@ -52,19 +54,29 @@ export class UsuariosService {
     return usuario;
   }
 
-  async criar(createUsuarioDto: CreateUsuarioDto): Promise<Usuario | Medico | Enfermeiro> {
-    try {
-      const novoUsuario = this.criaUsuarioPorRole(createUsuarioDto);
-      
-      // Gerar token de ativação
-      novoUsuario.activationToken = crypto.randomBytes(32).toString('hex');
-      novoUsuario.isActive = false;
-      
-      return await this.salvaUsuarioPorRole(novoUsuario);
-    } catch (error) {
-      throw new BadRequestException(error.message || "Erro ao criar usuário.");
-    }
+  async criar(createUsuarioDto: CreateUsuarioDto): Promise<Usuario> {
+    const novoUsuario = this.criaUsuarioPorRole(createUsuarioDto);
+    novoUsuario.activationToken = crypto.randomBytes(32).toString('hex');
+    novoUsuario.isActive = false;
+    novoUsuario.foto = null;
+    return await this.salvaUsuarioPorRole(novoUsuario);
   }
+
+  async atualizarFoto(id: number, filename: string) {
+    const usuario = await this.repositorioUsuario.findOne({
+      where: { id },
+      relations: { rg: true }, // carrega o RG vinculado!
+    });
+    if (!usuario) throw new NotFoundException("Usuário não encontrado!");
+    if (usuario.foto) {
+      const oldPath = path.join('./fotosUsuario', usuario.foto);
+      fs.promises.unlink(oldPath).catch(() => {});
+    }
+    usuario.foto = filename;
+    await this.repositorioUsuario.save(usuario);
+    return usuario;
+  }
+
 
   async findAll() {
     const usuarios = await this.repositorioUsuario.find({
@@ -209,6 +221,7 @@ export class UsuariosService {
     return `This action removes a #${id} usuario`;
   }
 
+    // Mantém seu método de criação por role (pode ser igual ao que você já tem):
   private criaUsuarioPorRole(
     criaUsuarioDto: CreateUsuarioDto
   ): Usuario | Medico | Enfermeiro {
@@ -229,7 +242,6 @@ export class UsuariosService {
           criaUsuarioDto.secretaria,
           criaUsuarioDto.telefone
         );
-
       case Role.MEDICO:
         return new Medico(
           criaUsuarioDto.nomeCompleto,
@@ -246,7 +258,6 @@ export class UsuariosService {
           criaUsuarioDto.secretaria,
           criaUsuarioDto.telefone
         );
-
       case Role.ENFERMEIRO:
         return new Enfermeiro(
           criaUsuarioDto.nomeCompleto,
@@ -263,9 +274,8 @@ export class UsuariosService {
           criaUsuarioDto.secretaria,
           criaUsuarioDto.telefone
         );
-
       default:
-        throw new Error("Role inválida");
+        throw new Error('Role inválida');
     }
   }
 

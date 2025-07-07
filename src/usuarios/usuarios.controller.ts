@@ -9,8 +9,11 @@ import {
   Query,
   UseGuards,
   ParseIntPipe,
+  UploadedFile,
+  UseInterceptors,
   HttpException,
   HttpStatus,
+  BadRequestException,
   HttpCode,
 } from "@nestjs/common";
 import { UsuariosService } from "./usuarios.service";
@@ -18,6 +21,9 @@ import { CreateUsuarioDto } from "./dto/create-usuario.dto";
 import { UpdateUsuarioDto } from "./dto/update-usuario.dto";
 import { UsuarioResponseDto } from "./dto/usuario-response.dto";
 import { MailService } from 'src/mail/mail.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import * as path from 'path';
 import { RolesGuard } from "src/auth/guards/roles.guard";
 import { Roles } from "src/shared/decorators/roles.decorator";
 import { Role } from "src/enums/role.enum";
@@ -33,23 +39,48 @@ export class UsuariosController {
     private readonly mailService: MailService
   ) {}
 
+
+  @Post('cadastrar')
   @IsPublic()
   @HttpCode(201)
-  @Post()
   async create(@Body() createUsuarioDto: CreateUsuarioDto) {
     const usuario = await this.usuariosService.criar(createUsuarioDto);
-    
-    // Enviar email de ativação
+
     await this.mailService.sendActivationEmail(
       usuario.email,
       usuario.nomeCompleto,
       usuario.activationToken
     );
-    
-    return { 
+
+    return {
       message: "Usuário criado com sucesso! Verifique seu email para ativar a conta.",
-      userId: usuario.id
+      userId: usuario.id,
     };
+  }
+
+  @Patch('foto/:id')
+  @UseInterceptors(
+    FileInterceptor('foto', {
+      storage: diskStorage({
+        destination: './fotosUsuario',
+        filename: (req, file, cb) => {
+          const ext = path.extname(file.originalname);
+          cb(null, `${req.params.id}_profile${ext}`);
+        },
+      }),
+      // (opcional: filtro de tipo/limite de tamanho)
+      // fileFilter: ...
+    }),
+  )
+  async uploadFoto(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() foto: Express.Multer.File
+  ) {
+    if (!foto) throw new BadRequestException("Foto não enviada!");
+
+    // Atualize no banco:
+    await this.usuariosService.atualizarFoto(id, foto.filename);
+    return { message: "Foto salva com sucesso.", foto: foto.filename };
   }
 
   @Roles(
