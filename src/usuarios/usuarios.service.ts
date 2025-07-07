@@ -48,48 +48,27 @@ export class UsuariosService {
     return usuario;
   }
 
-  async criar(createUsuarioDto: CreateUsuarioDto, foto?: Express.Multer.File) {
-    let usuarioSalvo;
+  async criar(createUsuarioDto: CreateUsuarioDto): Promise<Usuario> {
+    const novoUsuario = this.criaUsuarioPorRole(createUsuarioDto);
+    novoUsuario.activationToken = crypto.randomBytes(32).toString('hex');
+    novoUsuario.isActive = false;
+    novoUsuario.foto = null;
+    return await this.salvaUsuarioPorRole(novoUsuario);
+  }
 
-    try {
-      // 1. Salva o usuário SEM foto ainda
-      const novoUsuario = this.criaUsuarioPorRole(createUsuarioDto);
-      novoUsuario.activationToken = crypto.randomBytes(32).toString('hex');
-      novoUsuario.isActive = false;
-      usuarioSalvo = await this.salvaUsuarioPorRole(novoUsuario);
-
-      // 2. Se houver foto, renomeia
-      if (foto && usuarioSalvo?.id) {
-        const pasta = './fotosUsuario';
-        const extensao = path.extname(foto.originalname);
-        const nomeFotoFinal = `${usuarioSalvo.id}_profile${extensao}`;
-        const caminhoAntigo = path.join(pasta, foto.filename);
-        const caminhoNovo = path.join(pasta, nomeFotoFinal);
-
-        // Renomeia o arquivo temporário para o nome definitivo
-        await fs.promises.rename(caminhoAntigo, caminhoNovo);
-
-        // Atualiza o usuário com o nome da foto
-        usuarioSalvo.foto = nomeFotoFinal;
-        await this.salvaUsuarioPorRole(usuarioSalvo);
-      }
-
-      // 3. (Opcional) Envia email, retorna response etc.
-      return {
-        message: "Usuário criado com sucesso!",
-        userId: usuarioSalvo.id,
-        foto: usuarioSalvo.foto
-      };
-
-    } catch (error) {
-      // 4. Se deu erro, apaga a foto temporária, se existir
-      if (foto) {
-        const pasta = './fotosUsuario';
-        const caminhoAntigo = path.join(pasta, foto.filename);
-        fs.promises.unlink(caminhoAntigo).catch(() => {});
-      }
-      throw new BadRequestException(error.message || "Erro ao criar usuário.");
+  async atualizarFoto(id: number, filename: string) {
+    const usuario = await this.repositorioUsuario.findOne({
+      where: { id },
+      relations: { rg: true }, // carrega o RG vinculado!
+    });
+    if (!usuario) throw new NotFoundException("Usuário não encontrado!");
+    if (usuario.foto) {
+      const oldPath = path.join('./fotosUsuario', usuario.foto);
+      fs.promises.unlink(oldPath).catch(() => {});
     }
+    usuario.foto = filename;
+    await this.repositorioUsuario.save(usuario);
+    return usuario;
   }
 
 

@@ -13,6 +13,7 @@ import {
   UseInterceptors,
   HttpException,
   HttpStatus,
+  BadRequestException,
 } from "@nestjs/common";
 import { UsuariosService } from "./usuarios.service";
 import { CreateUsuarioDto } from "./dto/create-usuario.dto";
@@ -28,7 +29,6 @@ import { Role } from "src/enums/role.enum";
 import { IsPublic } from "src/shared/decorators/is-public.decorator";
 import { CurrentUser } from "src/shared/decorators/current-user.decorator";
 import { Usuario } from "./entities/usuario.entity";
-import { FileCleanupInterceptor } from "src/shared/interceptors/file-cleanup.interceptor";
 
 @UseGuards(RolesGuard)
 @Controller("usuarios")
@@ -39,27 +39,47 @@ export class UsuariosController {
   ) {}
 
   @IsPublic()
-  @Post("cadastrar")
+  @Post('cadastrar')
+  @IsPublic()
+  async create(@Body() createUsuarioDto: CreateUsuarioDto) {
+    const usuario = await this.usuariosService.criar(createUsuarioDto);
+
+    await this.mailService.sendActivationEmail(
+      usuario.email,
+      usuario.nomeCompleto,
+      usuario.activationToken
+    );
+
+    return {
+      message: "Usuário criado com sucesso! Verifique seu email para ativar a conta.",
+      userId: usuario.id,
+    };
+  }
+
+  @Patch('foto/:id')
   @UseInterceptors(
     FileInterceptor('foto', {
       storage: diskStorage({
         destination: './fotosUsuario',
         filename: (req, file, cb) => {
-          // Nome temporário aleatório
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          cb(null, uniqueSuffix + path.extname(file.originalname));
+          const ext = path.extname(file.originalname);
+          cb(null, `${req.params.id}_profile${ext}`);
         },
       }),
+      // (opcional: filtro de tipo/limite de tamanho)
+      // fileFilter: ...
     }),
-    new FileCleanupInterceptor(['foto'])
   )
-  async create(
-    @Body() createUsuarioDto: CreateUsuarioDto,
-    @UploadedFile() foto?: Express.Multer.File
+  async uploadFoto(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() foto: Express.Multer.File
   ) {
-    return this.usuariosService.criar(createUsuarioDto, foto);
-  }
+    if (!foto) throw new BadRequestException("Foto não enviada!");
 
+    // Atualize no banco:
+    await this.usuariosService.atualizarFoto(id, foto.filename);
+    return { message: "Foto salva com sucesso.", foto: foto.filename };
+  }
 
   @Roles(
     Role.ADMIN,

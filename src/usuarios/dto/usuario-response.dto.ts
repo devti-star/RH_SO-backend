@@ -32,7 +32,7 @@ export class UsuarioResponseDto {
   departamento: string;
   telefone: string;
   cargo: string;
-  foto?: string;
+  foto?: string | null;
   role: Role;
 
 }
