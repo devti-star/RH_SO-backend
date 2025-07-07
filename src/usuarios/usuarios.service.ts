@@ -1,7 +1,9 @@
 import {
   BadRequestException,
+  forwardRef,
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
@@ -16,6 +18,8 @@ import { compareSync, hashSync } from "bcrypt";
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
+import { RequerimentosService } from "src/requerimentos/requerimentos.service";
+import { UsuarioNotFoundException } from "src/shared/exceptions/usuario-not-found.exception";
 
 @Injectable()
 export class UsuariosService {
@@ -25,7 +29,9 @@ export class UsuariosService {
     @InjectRepository(Medico)
     private readonly repositorioMedico: Repository<Medico>,
     @InjectRepository(Enfermeiro)
-    private readonly repositorioEnfermeiro: Repository<Enfermeiro>
+    private readonly repositorioEnfermeiro: Repository<Enfermeiro>,
+    @Inject(forwardRef(() => RequerimentosService))
+    private readonly requerimentosService: RequerimentosService,
   ) {}
 
   async activateUser(userId: number): Promise<void> {
@@ -72,8 +78,24 @@ export class UsuariosService {
   }
 
 
-  findAll() {
-    return `This action returns all usuarios`;
+  async findAll() {
+    const usuarios = await this.repositorioUsuario.find({
+      relations: {
+        rg: true,
+      },
+    });
+
+    return usuarios;
+  }
+
+  async findAllRequerimentsOfUser(idUser: number){
+    const usuario = await this.findOne(idUser);
+
+    if(!usuario)
+      throw new UsuarioNotFoundException(idUser);
+
+    const meusRequerimentos = await this.requerimentosService.findAllRequerimentsUser(idUser);
+    return meusRequerimentos;
   }
 
   async findOne(
@@ -88,7 +110,7 @@ export class UsuariosService {
     });
 
     if (!usuario) {
-      throw new NotFoundException(`Usuário com id ${id} não encontrado.`);
+      throw new UsuarioNotFoundException(id);
     }
     const usuarioResponse: UsuarioResponseDto = new UsuarioResponseDto(usuario);
     return usuarioResponse;
@@ -153,7 +175,7 @@ export class UsuariosService {
     });
 
     if (!usuario) {
-      throw new NotFoundException(`Usuário com id ${id} não encontrado.`);
+      throw new UsuarioNotFoundException(id);
     }
 
     // Atualiza apenas campos permitidos
