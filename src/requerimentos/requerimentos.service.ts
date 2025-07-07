@@ -7,7 +7,6 @@ import { Repository } from 'typeorm';
 import { UsuariosService } from 'src/usuarios/usuarios.service';
 import { UsuarioNotFoundException } from 'src/shared/exceptions/usuario-not-found.exception';
 import { RequerimentoReponseDto } from './dto/response-requerimento.dto';
-import { Documento } from 'src/documentos/entities/documento.entity';
 import { RequerimentoNotFoundException } from 'src/shared/exceptions/requerimento-not-found.exception';
 
 @Injectable()
@@ -42,7 +41,7 @@ export class RequerimentosService {
         }
       },
     });
-    return requerimentos;
+    return requerimentos.map((req) => new RequerimentoReponseDto(req));
   }
 
   async findAllRequerimentsUser(idUsuario: number){
@@ -54,7 +53,7 @@ export class RequerimentosService {
       },
       where: {usuario: {id: idUsuario}}
     });
-    return requerimentos;
+    return requerimentos.map((req) => new RequerimentoReponseDto(req));
   }
 
   async findOne(id: number) {
@@ -70,7 +69,7 @@ export class RequerimentosService {
     if(!requerimento)
       throw new RequerimentoNotFoundException(id);
 
-    return requerimento;
+    return new RequerimentoReponseDto(requerimento);
   }
 
   async update(id: number, updateRequerimentoDto: UpdateRequerimentoDto) {
