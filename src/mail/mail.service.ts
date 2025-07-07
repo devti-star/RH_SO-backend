@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { join } from 'path';
 import * as fs from 'fs';
+import { OtpGenerateService } from 'src/shared/services/otp-generate.service';
 
 @Injectable()
 export class MailService {
-  constructor(private readonly mailerService: MailerService) { }
+  constructor(private readonly mailerService: MailerService, private readonly otp_service:OtpGenerateService) { }
 
   async sendDynamicEmail(
     to: string,
@@ -45,7 +46,7 @@ export class MailService {
     name: string,
     activationToken: string
   ) {
-    const activationLink = `${process.env.APP_URL}/auth/activate?token=${activationToken}`;
+    const otp = this.otp_service.generateOtp();
     const logoPath = join(__dirname, 'templates', 'assets', 'logo.png');
     await this.sendDynamicEmail(
       email,
@@ -54,10 +55,10 @@ export class MailService {
       'activation',
       {
         name,
-        activationLink,
+        otp,
         currentYear: new Date().getFullYear(),
         appName: 'SESMT',
-        supportEmail: 'suporte@sesmt.com'
+        supportEmail: 'sesmt@treslagoas.ms.gov.br'
       },
       [{
         filename: 'logoBranca.png',

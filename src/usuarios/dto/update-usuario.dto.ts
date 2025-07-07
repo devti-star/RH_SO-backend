@@ -41,5 +41,4 @@ export class UpdateUsuarioDto {
   @IsOptional()
   @IsString()
   activatedAt?: Date;
-
 }

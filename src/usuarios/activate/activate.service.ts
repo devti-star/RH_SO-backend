@@ -5,7 +5,7 @@ import { UsuariosService } from '../usuarios.service';
 export class ActivateService {
 
     constructor(private readonly usuarioService:UsuariosService){};
-    activateUser(id:number){
+    async activateUser(id:number): Promise<void> {
         this.usuarioService.update(id, {isActive: true, activatedAt:  new Date()})
     };
 

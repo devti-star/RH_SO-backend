@@ -9,16 +9,11 @@ import { HistoricosModule } from "./historicos/historicos.module";
 import { RGModule } from "./rg/rg.module";
 import { MailModule } from "./mail/mail.module";
 import { AuthModule } from "./auth/auth.module";
-import { APP_FILTER, APP_GUARD } from "@nestjs/core";
+import { APP_GUARD } from "@nestjs/core";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
 import { CacheModule } from '@nestjs/cache-manager';
-import { ActivationController } from './usuarios/activation.controller';
-import { CachedService } from './shared/services/cached.service'
-import { ActivationModule } from './activation/activation.module';
-import { ActivateModule } from './src/usuarios/activate/activate.module';
-import { ActivateModule } from './activate/activate.module';
-import { ActivateController } from './activate/activate.controller';
-
+import { ActivationController } from './usuarios/activate/activate.controller';
+import { ActivateModule } from "./usuarios/activate/activate.module";
 
 @Module({
   imports: [
@@ -37,7 +32,7 @@ import { ActivateController } from './activate/activate.controller';
       synchronize: true,
     }),
     CacheModule.register({
-      ttl: 1200000
+      ttl: 54000000
     }),
     UsuariosModule,
     MailModule,
@@ -45,10 +40,9 @@ import { ActivateController } from './activate/activate.controller';
     HistoricosModule,
     RGModule,
     AuthModule,
-    ActivationModule,
     ActivateModule,
-  ],
-  controllers: [AppController, ActivationController, ActivateController],
+    ],
+  controllers: [AppController, ActivationController, ActivationController],
   providers: [AppService, { provide: APP_GUARD, useClass: JwtAuthGuard }],
 
 })
