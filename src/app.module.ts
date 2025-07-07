@@ -15,6 +15,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { ActivationController } from './usuarios/activate/activate.controller';
 import { ActivateModule } from "./usuarios/activate/activate.module";
 import { SharedModule } from "./shared/services/shared.module";
+import { ActivateService } from "./usuarios/activate/activate.service";
 
 @Module({
   imports: [

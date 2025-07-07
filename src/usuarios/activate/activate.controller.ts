@@ -1,22 +1,47 @@
-import { Body, Controller, Get, HttpCode, Patch, Post, Query, Res } from '@nestjs/common';
-import { IsPublic } from 'src/shared/decorators/is-public.decorator';
-import { OtpDto } from './dto/otp.dto';
-import { UsuariosService } from '../usuarios.service';
-import { CachedService } from 'src/shared/services/cached.service';
-import { ActivateService } from './activate.service';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Res,
+} from "@nestjs/common";
+import { IsPublic } from "src/shared/decorators/is-public.decorator";
+import { OtpDto } from "./dto/otp.dto";
+import { UsuariosService } from "../usuarios.service";
+import { CachedService } from "src/shared/services/cached.service";
+import { ActivateService } from "./activate.service";
+import { TokenGenerateService } from "src/shared/services/token-generate.service";
+import { MailService } from "src/mail/mail.service";
+import { Usuario } from "../entities/usuario.entity";
+import { UsuarioResponseDto } from "../dto/usuario-response.dto";
+import { ConfigService } from "@nestjs/config";
 
 @IsPublic()
-@Controller('activate')
+@Controller("activate")
 export class ActivationController {
   constructor(
-    private readonly usuariosService: UsuariosService, private readonly cached_service:CachedService, private readonly activate_service:ActivateService
+    private readonly tokenService: TokenGenerateService,
+    private readonly activate_service: ActivateService,
+    private readonly mailService: MailService,
+    private readonly userService: UsuariosService,
+    private readonly configService: ConfigService
   ) {}
 
-  @Patch('otp')
+  @Get(":token")
   @HttpCode(202)
-  async activateAccount(@Body() otp:OtpDto){
-    const id:number = await this.cached_service.getCached(otp.otpCode);
+  async activateAccount(@Param("token") token: string) {
+    const id: number = await this.tokenService.validateToken(token);
     this.activate_service.activateUser(id);
-    await this.cached_service.deleteCached(otp.otpCode);
+    const usuario: UsuarioResponseDto = await this.userService.findOne(id);
+    if (usuario)
+      this.mailService.sendActivatedEmail(
+        usuario.email,
+        usuario.nomeCompleto,
+        this.configService.get<string>("URL_FRONT_APPLICATION")
+      );
   }
 }

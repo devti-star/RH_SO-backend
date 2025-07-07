@@ -46,3 +46,4 @@ ormconfig.js
 *.tgz
 package-lock.json yarn.lock # se for usar só um deles, ignore o outro
 
+docker-compose.yml

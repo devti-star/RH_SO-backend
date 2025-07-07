@@ -2,11 +2,11 @@
 import { Module } from '@nestjs/common';
 import { CachedService } from './cached.service';
 import { CacheModule } from '@nestjs/cache-manager';
-import { OtpGenerateService } from './otp-generate.service';
+import { TokenGenerateService } from './token-generate.service';
 
 @Module({
   imports: [CacheModule.register()], // Configuração do cache
-  providers: [CachedService, OtpGenerateService],
-  exports: [CachedService, OtpGenerateService], // Exporte o serviço!
+  providers: [CachedService, TokenGenerateService],
+  exports: [CachedService, TokenGenerateService], // Exporte o serviço!
 })
 export class SharedModule {}

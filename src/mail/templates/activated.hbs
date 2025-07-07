@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ativação de Conta</title>
+  <title>Conta Ativada</title>
   <style>
+    /* Estilos base */
     body {
       margin: 0;
       padding: 0;
@@ -22,7 +23,7 @@
       box-shadow: 0 0 20px rgba(0,0,0,0.05);
     }
     .header {
-      background-color: #2563eb;
+      background-color: #16a34a;
       color: #ffffff;
       padding: 30px 20px;
       text-align: center;
@@ -48,7 +49,7 @@
     }
     .button {
       display: inline-block;
-      background-color: #2563eb;
+      background-color: #16a34a;
       color: #ffffff !important;
       text-decoration: none;
       padding: 14px 35px;
@@ -59,7 +60,7 @@
       transition: background-color 0.3s;
     }
     .button:hover {
-      background-color: #1d4ed8;
+      background-color: #15803d;
     }
     .text-center {
       text-align: center;
@@ -99,25 +100,24 @@
   <div class="container">
     <div class="header">
       <img src="cid:logo" alt="Logo" class="logo">
-      <h1>Ativação de Conta</h1>
+      <h1>Conta Ativada com Sucesso</h1>
     </div>
     
     <div class="content">
       <p>Olá <strong>{{name}}</strong>,</p>
       
-      <p>Obrigado por se registrar em nosso sistema! Para completar seu cadastro e começar a utilizar todos os recursos, clique no botão abaixo para ativar sua conta:</p>
-    
+      <p>Estamos felizes em informar que sua conta foi <strong>ativada com sucesso</strong>! Agora você já pode acessar todos os recursos da plataforma.</p>
+
       <div class="text-center">
-        <a href="{{link}}" class="button">Ativar minha conta</a>
+        <a href="{{loginUrl}}" class="button">Acessar minha conta</a>
       </div>
 
-      <p class="small">Este link de ativação é válido por 90 minutos. Caso expire, você poderá solicitar um novo na página de login.</p>
-      
-      <p>Se você não solicitou esta conta, por favor ignore este e-mail.</p>
-      
-      <p>Atenciosamente,<br><strong>SESMT</strong></p>
+      <p>Se você tiver qualquer dúvida ou problema, nossa equipe de suporte está à disposição para te ajudar.</p>
+
+      <p>Bem-vindo(a) ao <strong>{{appName}}</strong>!<br>
+      <strong>Equipe SESMT</strong></p>
     </div>
-    
+
     <div class="footer">
       <p>© {{currentYear}} {{appName}}. Todos os direitos reservados.</p>
       <p>Esta é uma mensagem automática, por favor não responda este e-mail.</p>

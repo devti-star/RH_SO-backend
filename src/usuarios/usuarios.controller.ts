@@ -14,7 +14,8 @@ import { UpdateUsuarioDto } from "./dto/update-usuario.dto";
 import { UsuarioResponseDto } from "./dto/usuario-response.dto";
 import { MailService } from 'src/mail/mail.service';
 import { IsPublic } from "src/shared/decorators/is-public.decorator";
-import { OtpGenerateService } from "src/shared/services/otp-generate.service";
+import { TokenGenerateService } from "src/shared/services/token-generate.service";
+import { ConfigService } from "@nestjs/config";
 
 @IsPublic()
 @Controller("usuarios")
@@ -22,19 +23,22 @@ export class UsuariosController {
   constructor(
     private readonly usuariosService: UsuariosService,
     private readonly mailService: MailService,
-    private readonly otp_service:OtpGenerateService
+    private readonly tokenService:TokenGenerateService,
+    private readonly configService: ConfigService
   ) {}
 
   @Post()
   async create(@Body() createUsuarioDto: CreateUsuarioDto) {
     const usuario = await this.usuariosService.criar(createUsuarioDto);
-    const otp = this.otp_service.generateOtp();
-    
+    const token = await this.tokenService.generateToken(usuario.id);
+    const link = this.configService.get<string>("ACTIVATE_LINK") + "/" + token;
+    console.log(link);
+    console.log(usuario.email);
     // Enviar email de ativação
     await this.mailService.sendActivationEmail(
       usuario.email,
       usuario.nomeCompleto,
-      otp
+      link
     );
     
     return { 

@@ -1,7 +1,7 @@
 export class UsuarioResponseDto {
   id?: number;
-  nomeCompleto?: string;
-  email?: string;
+  nomeCompleto: string;
+  email: string;
   cpf?: string;
   matricula?: string;
   departamento?: string;

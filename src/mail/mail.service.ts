@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { MailerService } from '@nestjs-modules/mailer';
-import { join } from 'path';
-import * as fs from 'fs';
+import { Injectable } from "@nestjs/common";
+import { MailerService } from "@nestjs-modules/mailer";
+import { join } from "path";
+import * as fs from "fs";
 
 @Injectable()
 export class MailService {
-  constructor(private readonly mailerService: MailerService) { }
+  constructor(private readonly mailerService: MailerService) {}
 
   async sendDynamicEmail(
     to: string,
@@ -24,7 +24,6 @@ export class MailService {
       mailOptions.attachments = attachments;
     }
 
-
     if (template) {
       mailOptions.template = template;
       mailOptions.context = context;
@@ -34,35 +33,57 @@ export class MailService {
 
     try {
       await this.mailerService.sendMail(mailOptions);
-      return { success: true, message: 'Email enviado' };
+      return { success: true, message: "Email enviado" };
     } catch (error) {
       throw new Error(`Falha no envio: ${error.message}`);
     }
   }
 
-  async sendActivationEmail(
-    email: string,
-    name: string,
-    otp: string
-  ) {
-    const logoPath = join(__dirname, 'templates', 'assets', 'logo.png');
+  async sendActivationEmail(email: string, name: string, link: string) {
+    const logoPath = join(__dirname, "templates", "assets", "logo.png");
     await this.sendDynamicEmail(
       email,
-      'Ative sua conta',
-      '',
-      'activation',
+      "Ative sua conta",
+      "",
+      "activation",
       {
         name,
-        otp,
+        link,
         currentYear: new Date().getFullYear(),
-        appName: 'SESMT',
-        supportEmail: 'sesmt@treslagoas.ms.gov.br'
+        appName: "SESMT",
+        supportEmail: "sesmt@treslagoas.ms.gov.br",
       },
-      [{
-        filename: 'logoBranca.png',
-        path: logoPath,
-        cid: 'logo' // Deve corresponder ao cid:logo no template
-      }]
+      [
+        {
+          filename: "logoBranca.png",
+          path: logoPath,
+          cid: "logo", // Deve corresponder ao cid:logo no template
+        },
+      ]
+    );
+  }
+
+  async sendActivatedEmail(email: string, name: string, link: string | undefined) {
+    const logoPath = join(__dirname, "templates", "assets", "logo.png");
+    await this.sendDynamicEmail(
+      email,
+      "Conta ativada",
+      "",
+      "activated",
+      {
+        name,
+        link,
+        currentYear: new Date().getFullYear(),
+        appName: "SESMT",
+        supportEmail: "sesmt@treslagoas.ms.gov.br",
+      },
+      [
+        {
+          filename: "logoBranca.png",
+          path: logoPath,
+          cid: "logo",
+        },
+      ]
     );
   }
 }
