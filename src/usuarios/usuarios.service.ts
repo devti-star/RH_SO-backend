@@ -16,6 +16,7 @@ import { compareSync, hashSync } from "bcrypt";
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
+import { FileStorageService } from '../shared/services/file-storage.service';
 
 @Injectable()
 export class UsuariosService {
@@ -25,7 +26,8 @@ export class UsuariosService {
     @InjectRepository(Medico)
     private readonly repositorioMedico: Repository<Medico>,
     @InjectRepository(Enfermeiro)
-    private readonly repositorioEnfermeiro: Repository<Enfermeiro>
+    private readonly repositorioEnfermeiro: Repository<Enfermeiro>,
+    private readonly fileStorage: FileStorageService,
   ) {}
 
   async activateUser(userId: number): Promise<void> {
@@ -48,47 +50,16 @@ export class UsuariosService {
     return usuario;
   }
 
-  async criar(createUsuarioDto: CreateUsuarioDto, foto?: Express.Multer.File) {
-    let usuarioSalvo;
-
+  async criar(createUsuarioDto: CreateUsuarioDto) {
     try {
-      // 1. Salva o usuário SEM foto ainda
       const novoUsuario = this.criaUsuarioPorRole(createUsuarioDto);
       novoUsuario.activationToken = crypto.randomBytes(32).toString('hex');
       novoUsuario.isActive = false;
-      usuarioSalvo = await this.salvaUsuarioPorRole(novoUsuario);
 
-      // 2. Se houver foto, renomeia
-      if (foto && usuarioSalvo?.id) {
-        const pasta = './fotosUsuario';
-        const extensao = path.extname(foto.originalname);
-        const nomeFotoFinal = `${usuarioSalvo.id}_profile${extensao}`;
-        const caminhoAntigo = path.join(pasta, foto.filename);
-        const caminhoNovo = path.join(pasta, nomeFotoFinal);
-
-        // Renomeia o arquivo temporário para o nome definitivo
-        await fs.promises.rename(caminhoAntigo, caminhoNovo);
-
-        // Atualiza o usuário com o nome da foto
-        usuarioSalvo.foto = nomeFotoFinal;
-        await this.salvaUsuarioPorRole(usuarioSalvo);
-      }
-
-      // 3. (Opcional) Envia email, retorna response etc.
-      return {
-        message: "Usuário criado com sucesso!",
-        userId: usuarioSalvo.id,
-        foto: usuarioSalvo.foto
-      };
-
+      const usuarioSalvo = await this.salvaUsuarioPorRole(novoUsuario);
+      return usuarioSalvo;
     } catch (error) {
-      // 4. Se deu erro, apaga a foto temporária, se existir
-      if (foto) {
-        const pasta = './fotosUsuario';
-        const caminhoAntigo = path.join(pasta, foto.filename);
-        fs.promises.unlink(caminhoAntigo).catch(() => {});
-      }
-      throw new BadRequestException(error.message || "Erro ao criar usuário.");
+      throw new BadRequestException(error.message || 'Erro ao criar usuário.');
     }
   }
 
@@ -214,6 +185,36 @@ export class UsuariosService {
     await this.repositorioUsuario.save(usuario);
     const usuarioResponse: UsuarioResponseDto = new UsuarioResponseDto(usuario);
     return usuarioResponse;
+  }
+
+  async salvarFoto(userId: number, file: Express.Multer.File) {
+    const usuario = await this.repositorioUsuario.findOne({ where: { id: userId } });
+    if (!usuario) {
+      throw new NotFoundException(`Usuário com id ${userId} não encontrado.`);
+    }
+
+    if (!file.mimetype.startsWith('image/')) {
+      await fs.promises.unlink(file.path).catch(() => {});
+      throw new BadRequestException('Arquivo enviado não é uma imagem válida.');
+    }
+
+    const extensao = path.extname(file.originalname);
+    const nomeFotoFinal = `${userId}_profile${extensao}`;
+    const pasta = './fotosUsuario';
+
+    if (usuario.foto) {
+      const caminhoAntigo = path.join(pasta, usuario.foto);
+      await fs.promises.unlink(caminhoAntigo).catch(() => {});
+    }
+
+    const buffer = await fs.promises.readFile(file.path);
+    await this.fileStorage.saveFile(pasta, nomeFotoFinal, buffer);
+    await fs.promises.unlink(file.path).catch(() => {});
+
+    usuario.foto = nomeFotoFinal;
+    await this.repositorioUsuario.save(usuario);
+
+    return { message: 'Foto salva com sucesso.', foto: nomeFotoFinal };
   }
 
   remove(id: number) {

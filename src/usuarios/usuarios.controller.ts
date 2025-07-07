@@ -11,8 +11,6 @@ import {
   ParseIntPipe,
   UploadedFile,
   UseInterceptors,
-  HttpException,
-  HttpStatus,
 } from "@nestjs/common";
 import { UsuariosService } from "./usuarios.service";
 import { CreateUsuarioDto } from "./dto/create-usuario.dto";
@@ -28,7 +26,6 @@ import { Role } from "src/enums/role.enum";
 import { IsPublic } from "src/shared/decorators/is-public.decorator";
 import { CurrentUser } from "src/shared/decorators/current-user.decorator";
 import { Usuario } from "./entities/usuario.entity";
-import { FileCleanupInterceptor } from "src/shared/interceptors/file-cleanup.interceptor";
 
 @UseGuards(RolesGuard)
 @Controller("usuarios")
@@ -39,25 +36,10 @@ export class UsuariosController {
   ) {}
 
   @IsPublic()
-  @Post("cadastrar")
-  @UseInterceptors(
-    FileInterceptor('foto', {
-      storage: diskStorage({
-        destination: './fotosUsuario',
-        filename: (req, file, cb) => {
-          // Nome temporário aleatório
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          cb(null, uniqueSuffix + path.extname(file.originalname));
-        },
-      }),
-    }),
-    new FileCleanupInterceptor(['foto'])
-  )
-  async create(
-    @Body() createUsuarioDto: CreateUsuarioDto,
-    @UploadedFile() foto?: Express.Multer.File
-  ) {
-    return this.usuariosService.criar(createUsuarioDto, foto);
+  @Post('cadastrar')
+  async create(@Body() createUsuarioDto: CreateUsuarioDto) {
+    const usuario = await this.usuariosService.criar(createUsuarioDto);
+    return { message: 'Usuário criado com sucesso!', userId: usuario.id };
   }
 
 
@@ -103,6 +85,25 @@ export class UsuariosController {
   ) {
     await this.usuariosService.update(+id, updateUsuarioDto);
     return { message: "Usuário atualizado com sucesso." };
+  }
+
+  @Patch('foto/:id')
+  @UseInterceptors(
+    FileInterceptor('foto', {
+      storage: diskStorage({
+        destination: './fotosUsuario',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, uniqueSuffix + path.extname(file.originalname));
+        },
+      }),
+    })
+  )
+  async uploadFoto(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() foto: Express.Multer.File,
+  ) {
+    return this.usuariosService.salvarFoto(id, foto);
   }
 
   @Delete(":id")
