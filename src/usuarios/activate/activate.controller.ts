@@ -3,7 +3,6 @@ import { IsPublic } from 'src/shared/decorators/is-public.decorator';
 import { OtpDto } from './dto/otp.dto';
 import { UsuariosService } from '../usuarios.service';
 import { CachedService } from 'src/shared/services/cached.service';
-import { OtpGenerateService } from 'src/shared/services/otp-generate.service';
 import { ActivateService } from './activate.service';
 
 @IsPublic()

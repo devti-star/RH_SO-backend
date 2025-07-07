@@ -14,6 +14,7 @@ import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
 import { CacheModule } from '@nestjs/cache-manager';
 import { ActivationController } from './usuarios/activate/activate.controller';
 import { ActivateModule } from "./usuarios/activate/activate.module";
+import { SharedModule } from "./shared/services/shared.module";
 
 @Module({
   imports: [
@@ -40,7 +41,8 @@ import { ActivateModule } from "./usuarios/activate/activate.module";
     HistoricosModule,
     RGModule,
     AuthModule,
-    ActivateModule,
+    SharedModule, // Módulo compartilhado
+    ActivateModule, // Módulo do controller
     ],
   controllers: [AppController, ActivationController, ActivationController],
   providers: [AppService, { provide: APP_GUARD, useClass: JwtAuthGuard }],

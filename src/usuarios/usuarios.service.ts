@@ -7,8 +7,6 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Usuario, Medico, Enfermeiro } from "./entities/usuario.entity";
 import { Role } from "src/enums/role.enum";
 import { compareSync, hashSync } from "bcrypt";
-import * as crypto from 'crypto';
-import {} from ''
 
 @Injectable()
 export class UsuariosService {
@@ -46,7 +44,6 @@ export class UsuariosService {
       const novoUsuario = this.criaUsuarioPorRole(createUsuarioDto);
       
       // Gerar token de ativação
-      novoUsuario.activationToken = crypto.randomBytes(32).toString('hex');
       novoUsuario.isActive = false;
       
       return await this.salvaUsuarioPorRole(novoUsuario);

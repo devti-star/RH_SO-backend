@@ -14,24 +14,27 @@ import { UpdateUsuarioDto } from "./dto/update-usuario.dto";
 import { UsuarioResponseDto } from "./dto/usuario-response.dto";
 import { MailService } from 'src/mail/mail.service';
 import { IsPublic } from "src/shared/decorators/is-public.decorator";
+import { OtpGenerateService } from "src/shared/services/otp-generate.service";
 
 @IsPublic()
 @Controller("usuarios")
 export class UsuariosController {
   constructor(
     private readonly usuariosService: UsuariosService,
-    private readonly mailService: MailService
+    private readonly mailService: MailService,
+    private readonly otp_service:OtpGenerateService
   ) {}
 
   @Post()
   async create(@Body() createUsuarioDto: CreateUsuarioDto) {
     const usuario = await this.usuariosService.criar(createUsuarioDto);
+    const otp = this.otp_service.generateOtp();
     
     // Enviar email de ativação
     await this.mailService.sendActivationEmail(
       usuario.email,
       usuario.nomeCompleto,
-      usuario.activationToken
+      otp
     );
     
     return { 
