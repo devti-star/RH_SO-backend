@@ -14,6 +14,8 @@ import { Usuario, Medico, Enfermeiro } from "./entities/usuario.entity";
 import { Role } from "src/enums/role.enum";
 import { compareSync, hashSync } from "bcrypt";
 import * as crypto from 'crypto';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class UsuariosService {
@@ -46,19 +48,50 @@ export class UsuariosService {
     return usuario;
   }
 
-  async criar(createUsuarioDto: CreateUsuarioDto): Promise<Usuario | Medico | Enfermeiro> {
+  async criar(createUsuarioDto: CreateUsuarioDto, foto?: Express.Multer.File) {
+    let usuarioSalvo;
+
     try {
+      // 1. Salva o usuário SEM foto ainda
       const novoUsuario = this.criaUsuarioPorRole(createUsuarioDto);
-      
-      // Gerar token de ativação
       novoUsuario.activationToken = crypto.randomBytes(32).toString('hex');
       novoUsuario.isActive = false;
-      
-      return await this.salvaUsuarioPorRole(novoUsuario);
+      usuarioSalvo = await this.salvaUsuarioPorRole(novoUsuario);
+
+      // 2. Se houver foto, renomeia
+      if (foto && usuarioSalvo?.id) {
+        const pasta = './fotosUsuario';
+        const extensao = path.extname(foto.originalname);
+        const nomeFotoFinal = `${usuarioSalvo.id}_profile${extensao}`;
+        const caminhoAntigo = path.join(pasta, foto.filename);
+        const caminhoNovo = path.join(pasta, nomeFotoFinal);
+
+        // Renomeia o arquivo temporário para o nome definitivo
+        await fs.promises.rename(caminhoAntigo, caminhoNovo);
+
+        // Atualiza o usuário com o nome da foto
+        usuarioSalvo.foto = nomeFotoFinal;
+        await this.salvaUsuarioPorRole(usuarioSalvo);
+      }
+
+      // 3. (Opcional) Envia email, retorna response etc.
+      return {
+        message: "Usuário criado com sucesso!",
+        userId: usuarioSalvo.id,
+        foto: usuarioSalvo.foto
+      };
+
     } catch (error) {
+      // 4. Se deu erro, apaga a foto temporária, se existir
+      if (foto) {
+        const pasta = './fotosUsuario';
+        const caminhoAntigo = path.join(pasta, foto.filename);
+        fs.promises.unlink(caminhoAntigo).catch(() => {});
+      }
       throw new BadRequestException(error.message || "Erro ao criar usuário.");
     }
   }
+
 
   findAll() {
     return `This action returns all usuarios`;
@@ -187,6 +220,7 @@ export class UsuariosService {
     return `This action removes a #${id} usuario`;
   }
 
+    // Mantém seu método de criação por role (pode ser igual ao que você já tem):
   private criaUsuarioPorRole(
     criaUsuarioDto: CreateUsuarioDto
   ): Usuario | Medico | Enfermeiro {
@@ -207,7 +241,6 @@ export class UsuariosService {
           criaUsuarioDto.secretaria,
           criaUsuarioDto.telefone
         );
-
       case Role.MEDICO:
         return new Medico(
           criaUsuarioDto.nomeCompleto,
@@ -224,7 +257,6 @@ export class UsuariosService {
           criaUsuarioDto.secretaria,
           criaUsuarioDto.telefone
         );
-
       case Role.ENFERMEIRO:
         return new Enfermeiro(
           criaUsuarioDto.nomeCompleto,
@@ -241,9 +273,8 @@ export class UsuariosService {
           criaUsuarioDto.secretaria,
           criaUsuarioDto.telefone
         );
-
       default:
-        throw new Error("Role inválida");
+        throw new Error('Role inválida');
     }
   }
 

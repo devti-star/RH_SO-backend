@@ -3,6 +3,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Documento } from './entities/documento.entity';
+import * as fs from 'fs';
 import * as path from 'path';
 import { Requerimento } from '../requerimentos/entities/requerimento.entity';
 import { FileStorageService } from '../shared/services/file-storage.service';

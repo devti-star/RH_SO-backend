@@ -9,6 +9,8 @@ import {
   Query,
   UseGuards,
   ParseIntPipe,
+  UploadedFile,
+  UseInterceptors,
   HttpException,
   HttpStatus,
 } from "@nestjs/common";
@@ -17,12 +19,16 @@ import { CreateUsuarioDto } from "./dto/create-usuario.dto";
 import { UpdateUsuarioDto } from "./dto/update-usuario.dto";
 import { UsuarioResponseDto } from "./dto/usuario-response.dto";
 import { MailService } from 'src/mail/mail.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import * as path from 'path';
 import { RolesGuard } from "src/auth/guards/roles.guard";
 import { Roles } from "src/shared/decorators/roles.decorator";
 import { Role } from "src/enums/role.enum";
 import { IsPublic } from "src/shared/decorators/is-public.decorator";
 import { CurrentUser } from "src/shared/decorators/current-user.decorator";
 import { Usuario } from "./entities/usuario.entity";
+import { FileCleanupInterceptor } from "src/shared/interceptors/file-cleanup.interceptor";
 
 @UseGuards(RolesGuard)
 @Controller("usuarios")
@@ -33,22 +39,27 @@ export class UsuariosController {
   ) {}
 
   @IsPublic()
-  @Post()
-  async create(@Body() createUsuarioDto: CreateUsuarioDto) {
-    const usuario = await this.usuariosService.criar(createUsuarioDto);
-    
-    // Enviar email de ativação
-    await this.mailService.sendActivationEmail(
-      usuario.email,
-      usuario.nomeCompleto,
-      usuario.activationToken
-    );
-    
-    return { 
-      message: "Usuário criado com sucesso! Verifique seu email para ativar a conta.",
-      userId: usuario.id
-    };
+  @Post("cadastrar")
+  @UseInterceptors(
+    FileInterceptor('foto', {
+      storage: diskStorage({
+        destination: './fotosUsuario',
+        filename: (req, file, cb) => {
+          // Nome temporário aleatório
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, uniqueSuffix + path.extname(file.originalname));
+        },
+      }),
+    }),
+    new FileCleanupInterceptor(['foto'])
+  )
+  async create(
+    @Body() createUsuarioDto: CreateUsuarioDto,
+    @UploadedFile() foto?: Express.Multer.File
+  ) {
+    return this.usuariosService.criar(createUsuarioDto, foto);
   }
+
 
   @Roles(
     Role.ADMIN,
