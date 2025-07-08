@@ -19,6 +19,8 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { RequerimentosService } from "src/requerimentos/requerimentos.service";
+import { UsuarioNotFoundException } from "src/shared/exceptions/usuario-not-found.exception";
+import { Usuariofactory } from "src/shared/factory/usuario-factory";
 
 
 @Injectable()
@@ -224,76 +226,11 @@ export class UsuariosService {
   }
 
     // Mantém seu método de criação por role (pode ser igual ao que você já tem):
-  private criaUsuarioPorRole(
-    criaUsuarioDto: CreateUsuarioDto
-  ): Usuario | Medico | Enfermeiro {
-    switch (criaUsuarioDto.role) {
-      case Role.PADRAO:
-      case Role.TRIAGEM:
-        return new Usuario(
-          criaUsuarioDto.nomeCompleto,
-          criaUsuarioDto.email,
-          criaUsuarioDto.cpf,
-          criaUsuarioDto.rg,
-          criaUsuarioDto.orgaoExpeditor,
-          criaUsuarioDto.senha,
-          criaUsuarioDto.matricula,
-          criaUsuarioDto.cargo,
-          criaUsuarioDto.role,
-          criaUsuarioDto.departamento,
-          criaUsuarioDto.secretaria,
-          criaUsuarioDto.telefone
-        );
-      case Role.MEDICO:
-        return new Medico(
-          criaUsuarioDto.nomeCompleto,
-          criaUsuarioDto.email,
-          criaUsuarioDto.cpf,
-          criaUsuarioDto.rg,
-          criaUsuarioDto.orgaoExpeditor,
-          criaUsuarioDto.senha,
-          criaUsuarioDto.matricula,
-          criaUsuarioDto.cargo,
-          criaUsuarioDto.role,
-          criaUsuarioDto.crm as string,
-          criaUsuarioDto.departamento,
-          criaUsuarioDto.secretaria,
-          criaUsuarioDto.telefone
-        );
-      case Role.ENFERMEIRO:
-        return new Enfermeiro(
-          criaUsuarioDto.nomeCompleto,
-          criaUsuarioDto.email,
-          criaUsuarioDto.cpf,
-          criaUsuarioDto.rg,
-          criaUsuarioDto.orgaoExpeditor,
-          criaUsuarioDto.senha,
-          criaUsuarioDto.matricula,
-          criaUsuarioDto.cargo,
-          criaUsuarioDto.role,
-          criaUsuarioDto.cre as string,
-          criaUsuarioDto.departamento,
-          criaUsuarioDto.secretaria,
-          criaUsuarioDto.telefone
-        );
-      default:
-        throw new Error('Role inválida');
-    }
+  private criaUsuarioPorRole(criaUsuarioDto: CreateUsuarioDto): Usuario {
+      const usuario = Usuariofactory.createUsuario(criaUsuarioDto);
+      return usuario;
   }
 
-  private async salvaUsuarioPorRole(usuario: Usuario | Medico | Enfermeiro): Promise<Usuario | Medico | Enfermeiro> {
-    switch (usuario.role) {
-      case Role.PADRAO:
-      case Role.TRIAGEM:
-        return this.repositorioUsuario.save(usuario);
-      case Role.MEDICO:
-        return this.repositorioMedico.save(usuario);
-      case Role.ENFERMEIRO:
-        return this.repositorioEnfermeiro.save(usuario);
-      default:
-        throw new Error("Role inválida");
-    }
-  }
 
   getColumnsforUser(usuario: Usuario, id: number): (keyof UsuarioResponseDto)[] {
     const campos = [
@@ -323,6 +260,23 @@ export class UsuariosService {
       throw new HttpException(`Acesso não autorizado`, HttpStatus.FORBIDDEN);
 
     return campos;
+  }
+
+  private async salvaUsuarioPorRole(usuario: Usuario): Promise<Usuario> {
+    switch (usuario.role) {
+      case Role.PADRAO:
+      case Role.RH:
+      case Role.PS:
+      case Role.ADMIN:
+      case Role.TRIAGEM:
+        return this.repositorioUsuario.save(usuario);
+      case Role.MEDICO:
+        return this.repositorioMedico.save(usuario);
+      case Role.ENFERMEIRO:
+        return this.repositorioEnfermeiro.save(usuario);
+      default:
+        throw new Error("Role inválida");
+    }
   }
 
   // async findByEmail(

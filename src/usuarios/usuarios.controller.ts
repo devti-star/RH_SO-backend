@@ -44,7 +44,7 @@ export class UsuariosController {
   ) {}
 
 
-  @Post('cadastrar')
+  @Post()
   @IsPublic()
   @HttpCode(201)
   async create(@Body() createUsuarioDto: CreateUsuarioDto) {
