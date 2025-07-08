@@ -143,7 +143,9 @@ export class UsuariosService {
     if (updateUsuarioDto.telefone !== undefined) usuario.telefone = updateUsuarioDto.telefone;
     if (updateUsuarioDto.cargo !== undefined) usuario.cargo = updateUsuarioDto.cargo;
     if (updateUsuarioDto.foto !== undefined) usuario.foto = updateUsuarioDto.foto;
-
+    if (updateUsuarioDto.isActive !== undefined) usuario.isActive = updateUsuarioDto.isActive;
+    if (updateUsuarioDto.activatedAt !== undefined) usuario.activatedAt = updateUsuarioDto.activatedAt;
+    
     // Atualização de senha exige senha atual
     if (updateUsuarioDto.senha !== undefined) {
       if (!updateUsuarioDto.senhaAtual) {

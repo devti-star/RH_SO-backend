@@ -29,14 +29,17 @@ export class ActivationController {
     private readonly mailService: MailService,
     private readonly userService: UsuariosService,
     private readonly configService: ConfigService
-  ) {}
+  ) { }
 
   @Get(":token")
   @HttpCode(202)
   async activateAccount(@Param("token") token: string) {
     const id: number = await this.tokenService.validateToken(token);
-    this.activate_service.activateUser(id);
     const usuario: UsuarioResponseDto = await this.userService.findOne(id);
+    if (!usuario) {
+      return;
+    }
+    await this.activate_service.activateUser(usuario?.id);
     if (usuario)
       this.mailService.sendActivatedEmail(
         usuario.email,

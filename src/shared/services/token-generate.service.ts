@@ -16,7 +16,6 @@ export class TokenGenerateService {
 
   async validateToken(token: string): Promise<number>{
     const userId = await this.cacheService.getCached(token);
-
     await this.cacheService.deleteCached(token);
 
     return userId;
