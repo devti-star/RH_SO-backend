@@ -47,21 +47,12 @@ export class AuthService {
 
   async changePassword(user: Usuario, changePasswordDto: ChangePasswordDto) {
     const usuario = await this.usuarioService.findByEmailcomSenha(user.email);
-    console.log("Senha atual do banco: ", usuario.senha);
-    console.log(
-      "Senha atual da requisição: ",
-      changePasswordDto.currentPassword
-    );
-    console.log("Senha nova da requisição: ", changePasswordDto.newPassword);
 
     const isPasswordValid = usuario?.senha
       ? compareSync(changePasswordDto.currentPassword, usuario.senha)
       : false;
 
-    console.log("valor de compareSync = ", isPasswordValid);
-
     if (isPasswordValid) {
-      console.log("aqui");
       await this.usuarioService.update(usuario.id, {
         senhaAtual: changePasswordDto.currentPassword,
         senha: changePasswordDto.newPassword,
