@@ -50,7 +50,6 @@ import { DocumentosModule } from './documentos/documentos.module';
     DocumentosModule,
     ],
   controllers: [AppController, ActivationController, ActivationController],
-  ],
   providers: [AppService, { provide: APP_GUARD, useClass: JwtAuthGuard }],
 
 })

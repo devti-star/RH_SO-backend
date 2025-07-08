@@ -20,10 +20,10 @@ import { UsuariosService } from "./usuarios.service";
 import { CreateUsuarioDto } from "./dto/create-usuario.dto";
 import { UpdateUsuarioDto } from "./dto/update-usuario.dto";
 import { UsuarioResponseDto } from "./dto/usuario-response.dto";
-import { MailService } from 'src/mail/mail.service';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import * as path from 'path';
+import { MailService } from "src/mail/mail.service";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { diskStorage } from "multer";
+import * as path from "path";
 import { RolesGuard } from "src/auth/guards/roles.guard";
 import { Roles } from "src/shared/decorators/roles.decorator";
 import { Role } from "src/enums/role.enum";
@@ -32,6 +32,9 @@ import { TokenGenerateService } from "src/shared/services/token-generate.service
 import { ConfigService } from "@nestjs/config";
 import { CurrentUser } from "src/shared/decorators/current-user.decorator";
 import { Usuario } from "./entities/usuario.entity";
+import { ChangePasswordDto } from "./dto/change-password-usuario.dto";
+import { AuthService } from "src/auth/auth.service";
+import { compareSync } from "bcrypt";
 
 @UseGuards(RolesGuard)
 @Controller("usuarios")
@@ -39,10 +42,10 @@ export class UsuariosController {
   constructor(
     private readonly usuariosService: UsuariosService,
     private readonly mailService: MailService,
-    private readonly tokenService:TokenGenerateService,
-    private readonly configService: ConfigService
+    private readonly tokenService: TokenGenerateService,
+    private readonly configService: ConfigService,
+    private readonly authService: AuthService
   ) {}
-
 
   @Post()
   @IsPublic()
@@ -62,16 +65,17 @@ export class UsuariosController {
     );
 
     return {
-      message: "Usuário criado com sucesso! Verifique seu email para ativar a conta.",
+      message:
+        "Usuário criado com sucesso! Verifique seu email para ativar a conta.",
       userId: usuario.id,
     };
   }
 
-  @Patch('foto/:id')
+  @Patch("foto/:id")
   @UseInterceptors(
-    FileInterceptor('foto', {
+    FileInterceptor("foto", {
       storage: diskStorage({
-        destination: './fotosUsuario',
+        destination: "./fotosUsuario",
         filename: (req, file, cb) => {
           const ext = path.extname(file.originalname);
           cb(null, `${req.params.id}_profile${ext}`);
@@ -79,10 +83,10 @@ export class UsuariosController {
       }),
       // (opcional: filtro de tipo/limite de tamanho)
       // fileFilter: ...
-    }),
+    })
   )
   async uploadFoto(
-    @Param('id', ParseIntPipe) id: number,
+    @Param("id", ParseIntPipe) id: number,
     @UploadedFile() foto: Express.Multer.File
   ) {
     if (!foto) throw new BadRequestException("Foto não enviada!");
@@ -105,8 +109,8 @@ export class UsuariosController {
     return this.usuariosService.findAll();
   }
 
-  @Get(':id/requerimentos')
-  findAllRequerimentosOfUser(@Param('id', ParseIntPipe) id: number){
+  @Get(":id/requerimentos")
+  findAllRequerimentosOfUser(@Param("id", ParseIntPipe) id: number) {
     return this.usuariosService.findAllRequerimentsOfUser(id);
   }
 
@@ -132,9 +136,19 @@ export class UsuariosController {
     return this.usuariosService.findByEmail(email);
   }
 
+  @Patch("mudar-senha")
+  async changePassword(
+    @CurrentUser() user: Usuario,
+    @Body() changePasswordDto: ChangePasswordDto
+  ) {
+    console.log("Entrou")
+    await this.authService.changePassword(user,changePasswordDto);
+    return {message: "Senha alterada com sucesso, bigode!"};
+  }
+
   @Patch(":id")
   async update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param("id", ParseIntPipe) id: number,
     @Body() updateUsuarioDto: UpdateUsuarioDto
   ) {
     await this.usuariosService.update(id, updateUsuarioDto);
@@ -143,7 +157,7 @@ export class UsuariosController {
 
   @HttpCode(204)
   @Delete(":id")
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param("id", ParseIntPipe) id: number) {
     return this.usuariosService.remove(id);
   }
 }
