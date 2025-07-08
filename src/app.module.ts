@@ -16,6 +16,9 @@ import { ActivationController } from './usuarios/activate/activate.controller';
 import { ActivateModule } from "./usuarios/activate/activate.module";
 import { SharedModule } from "./shared/services/shared.module";
 import { ActivateService } from "./usuarios/activate/activate.service";
+import { DocumentosModule } from './documentos/documentos.module';
+
+
 
 @Module({
   imports: [
@@ -44,8 +47,10 @@ import { ActivateService } from "./usuarios/activate/activate.service";
     AuthModule,
     SharedModule, // Módulo compartilhado
     ActivateModule, // Módulo do controller
+    DocumentosModule,
     ],
   controllers: [AppController, ActivationController, ActivationController],
+  ],
   providers: [AppService, { provide: APP_GUARD, useClass: JwtAuthGuard }],
 
 })

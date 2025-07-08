@@ -12,7 +12,7 @@ import {
 import { Role } from "../../enums/role.enum";
 import { Requerimento } from "../../requerimentos/entities/requerimento.entity";
 import { hashSync } from "bcrypt";
-import { RG } from "src/rg/entities/rg.entity";
+import { RG } from "../../rg/entities/rg.entity";
 
 @Entity()
 @TableInheritance({ column: { type: "varchar", name: "type" } })
@@ -34,7 +34,7 @@ export class Usuario {
     this.nomeCompleto = nomeCompleto;
     this.email = email;
     this.cpf = cpf;
-    this.rg = new RG(this, numeroRg, orgaoExpeditor);
+    this.rg = new RG(numeroRg, orgaoExpeditor);
     this.senha = senha;
     this.matricula = matricula;
     this.cargo = cargo;
@@ -56,7 +56,7 @@ export class Usuario {
   @Column({ length: 25, unique: true })
   cpf: string;
 
-  @OneToOne(() => RG, (rg) => rg.proprietario, { cascade: true })
+  @OneToOne(() => RG, { cascade: true }) 
   @JoinColumn()
   rg: RG;
 
@@ -78,8 +78,8 @@ export class Usuario {
   @Column({ select: false })
   senha?: string;
 
-  @Column({ nullable: true })
-  foto: string;
+  @Column({ nullable: true, type: 'varchar' })
+  foto: string | null;
 
   @Column({ type: "int" })
   role: Role;

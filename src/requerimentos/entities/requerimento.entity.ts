@@ -17,13 +17,18 @@ import { Historico } from "../../historicos/entities/historico.entity";
 
 @Entity()
 export class Requerimento {
+  constructor(usuario: Usuario){
+    this.usuario = usuario;
+  }
+
+
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ type: "int" })
   tipo: TipoRequerimento;
 
-  @Column()
+  @Column({ nullable: true })
   assinatura: string;
 
   @Column({ type: "int" })
@@ -39,7 +44,7 @@ export class Requerimento {
   criadoEm: Date;
 
   // RELACIONAMENTO COM USUÁRIO (N requs para 1 usuario)
-  @ManyToOne(() => Usuario, (usuario) => usuario.requerimentos, { lazy: true })
+  @ManyToOne(() => Usuario, (usuario) => usuario.requerimentos)
   usuario: Usuario;
 
   // RELACIONAMENTO COM DOCUMENTOS (1 requerimento para N documentos)
