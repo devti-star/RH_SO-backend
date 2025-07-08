@@ -11,6 +11,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { DocumentosService } from './documentos.service';
 import { Documento } from './entities/documento.entity';
+import { CreateAtestadoDto } from './dto/create-atestado.dto';
 
 @Controller('documentos')
 export class DocumentosController {
@@ -31,5 +32,10 @@ export class DocumentosController {
       throw new BadRequestException('Campo arquivo é obrigatório');
     }
     return this.documentosService.create(requerimentoId, file);
+  }
+
+  @Post('/atestados')
+  create(@Body() createAtestadoDto: CreateAtestadoDto){
+    return this.documentosService.createAtestado(createAtestadoDto);
   }
 }

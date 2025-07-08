@@ -7,6 +7,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Requerimento } from '../requerimentos/entities/requerimento.entity';
 import { FileStorageService } from '../shared/services/file-storage.service';
+import { CreateAtestadoDto } from './dto/create-atestado.dto';
 
 @Injectable()
 export class DocumentosService {
@@ -35,5 +36,9 @@ export class DocumentosService {
       requerimento: { id: requerimentoId } as Requerimento,
     });
     return this.repo.save(doc);
+  }
+
+  async createAtestado(createAtestado: CreateAtestadoDto){
+    
   }
 }

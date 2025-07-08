@@ -8,6 +8,8 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 import { Requerimento } from '../../requerimentos/entities/requerimento.entity';
+import { Checklist } from '../models/checklist';
+import { Status } from 'src/enums/status.enum';
 
 @Entity('documentos')
 @TableInheritance({ column: { type: 'varchar', name: 'tipo_documento' } })
@@ -32,6 +34,9 @@ export class Atestado extends Documento {
 
   @Column({ type: 'boolean', default: false })
   concluido: boolean; // Indica se o atestado foi concluído
+
+  @Column('jsonb', { nullable: true })
+  checklis: Checklist[];
 
   @Column({ length: 255, nullable: true })
   justificativa: string; // Justificativa para o atestado, se necessário
