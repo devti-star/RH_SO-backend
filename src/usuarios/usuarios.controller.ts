@@ -28,6 +28,8 @@ import { RolesGuard } from "src/auth/guards/roles.guard";
 import { Roles } from "src/shared/decorators/roles.decorator";
 import { Role } from "src/enums/role.enum";
 import { IsPublic } from "src/shared/decorators/is-public.decorator";
+import { TokenGenerateService } from "src/shared/services/token-generate.service";
+import { ConfigService } from "@nestjs/config";
 import { CurrentUser } from "src/shared/decorators/current-user.decorator";
 import { Usuario } from "./entities/usuario.entity";
 
@@ -36,7 +38,9 @@ import { Usuario } from "./entities/usuario.entity";
 export class UsuariosController {
   constructor(
     private readonly usuariosService: UsuariosService,
-    private readonly mailService: MailService
+    private readonly mailService: MailService,
+    private readonly tokenService:TokenGenerateService,
+    private readonly configService: ConfigService
   ) {}
 
 
@@ -45,11 +49,16 @@ export class UsuariosController {
   @HttpCode(201)
   async create(@Body() createUsuarioDto: CreateUsuarioDto) {
     const usuario = await this.usuariosService.criar(createUsuarioDto);
+    const token = await this.tokenService.generateToken(usuario.id);
+    const link = this.configService.get<string>("ACTIVATE_LINK") + "/" + token;
+    console.log(link);
+    console.log(usuario.email);
+    // Enviar email de ativação
 
     await this.mailService.sendActivationEmail(
       usuario.email,
       usuario.nomeCompleto,
-      usuario.activationToken
+      link
     );
 
     return {

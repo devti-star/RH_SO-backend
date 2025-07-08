@@ -8,6 +8,7 @@ import { UsuarioResponseDto } from "src/usuarios/dto/usuario-response.dto";
 
 export class RequerimentoReponseDto{
     constructor(requerimento: Requerimento){
+        this.id = requerimento.id;
         this.assinatura = requerimento.assinatura;
         this.status = requerimento.status;
         this.etapa = requerimento.etapa;
@@ -15,6 +16,7 @@ export class RequerimentoReponseDto{
         this.observacao = requerimento.observacao;
         this.usuario = new UsuarioResponseDto(requerimento.usuario);
     }
+    id: number;
     tipo: TipoRequerimento;
     assinatura: string;
     status: Status;

@@ -9,10 +9,15 @@ import { HistoricosModule } from "./historicos/historicos.module";
 import { RGModule } from "./rg/rg.module";
 import { MailModule } from "./mail/mail.module";
 import { AuthModule } from "./auth/auth.module";
-import { APP_FILTER, APP_GUARD } from "@nestjs/core";
+import { APP_GUARD } from "@nestjs/core";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
-import { ActivationController } from './usuarios/activation.controller';
+import { CacheModule } from '@nestjs/cache-manager';
+import { ActivationController } from './usuarios/activate/activate.controller';
+import { ActivateModule } from "./usuarios/activate/activate.module";
+import { SharedModule } from "./shared/services/shared.module";
+import { ActivateService } from "./usuarios/activate/activate.service";
 import { DocumentosModule } from './documentos/documentos.module';
+
 
 
 @Module({
@@ -31,18 +36,25 @@ import { DocumentosModule } from './documentos/documentos.module';
       autoLoadEntities: true,
       synchronize: true,
     }),
+    CacheModule.register({
+      ttl: 54000000
+    }),
     UsuariosModule,
     MailModule,
     RequerimentosModule,
     HistoricosModule,
     RGModule,
     AuthModule,
+    SharedModule, // Módulo compartilhado
+    ActivateModule, // Módulo do controller
     DocumentosModule,
+    ],
+  controllers: [AppController, ActivationController, ActivationController],
   ],
+  providers: [AppService, { provide: APP_GUARD, useClass: JwtAuthGuard }],
 
-  controllers: [AppController, ActivationController],
-  providers: [AppService, /*{ provide: APP_GUARD, useClass: JwtAuthGuard }*/],
 })
 export class AppModule {}
+
 
 console.log("JWT_SECRET:", process.env.JWT_SECRET);

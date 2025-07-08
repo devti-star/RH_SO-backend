@@ -33,4 +33,12 @@ export class UpdateUsuarioDto {
   @IsOptional()
   @IsString()
   foto?: string;
+  
+  @IsOptional()
+  @IsString()
+  isActive?: boolean;
+
+  @IsOptional()
+  @IsString()
+  activatedAt?: Date;
 }

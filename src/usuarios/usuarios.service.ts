@@ -22,6 +22,7 @@ import { RequerimentosService } from "src/requerimentos/requerimentos.service";
 import { UsuarioNotFoundException } from "src/shared/exceptions/usuario-not-found.exception";
 import { Usuariofactory } from "src/shared/factory/usuario-factory";
 
+
 @Injectable()
 export class UsuariosService {
   constructor(
@@ -42,9 +43,9 @@ export class UsuariosService {
     });
   }
 
-  async activateByToken(token: string): Promise<Usuario> {
+  async activateByToken(id: number): Promise<Usuario> {
     const usuario = await this.repositorioUsuario.findOne({ 
-      where: { activationToken: token } 
+      where: { id: id } 
     });
     
     if (!usuario) {
@@ -55,12 +56,18 @@ export class UsuariosService {
     return usuario;
   }
 
+
   async criar(createUsuarioDto: CreateUsuarioDto): Promise<Usuario> {
-    const novoUsuario = this.criaUsuarioPorRole(createUsuarioDto);
-    novoUsuario.activationToken = crypto.randomBytes(32).toString('hex');
-    novoUsuario.isActive = false;
-    novoUsuario.foto = null;
+    try {
+      const novoUsuario = this.criaUsuarioPorRole(createUsuarioDto);
+      novoUsuario.activationToken = crypto.randomBytes(32).toString('hex');
+      novoUsuario.isActive = false;
+      novoUsuario.foto = null;
     return await this.salvaUsuarioPorRole(novoUsuario);
+    } catch {
+      throw new BadRequestException(error.message || "Erro ao criar usuário.");
+    }
+
   }
 
   async atualizarFoto(id: number, filename: string) {
@@ -180,18 +187,14 @@ export class UsuariosService {
     }
 
     // Atualiza apenas campos permitidos
-    if (updateUsuarioDto.nomeCompleto !== undefined)
-      usuario.nomeCompleto = updateUsuarioDto.nomeCompleto;
-    if (updateUsuarioDto.departamento !== undefined)
-      usuario.departamento = updateUsuarioDto.departamento;
-    if (updateUsuarioDto.secretaria !== undefined)
-      usuario.secretaria = updateUsuarioDto.secretaria;
-    if (updateUsuarioDto.telefone !== undefined)
-      usuario.telefone = updateUsuarioDto.telefone;
-    if (updateUsuarioDto.cargo !== undefined)
-      usuario.cargo = updateUsuarioDto.cargo;
-    if (updateUsuarioDto.foto !== undefined)
-      usuario.foto = updateUsuarioDto.foto;
+    if (updateUsuarioDto.nomeCompleto !== undefined) usuario.nomeCompleto = updateUsuarioDto.nomeCompleto;
+    if (updateUsuarioDto.departamento !== undefined) usuario.departamento = updateUsuarioDto.departamento;
+    if (updateUsuarioDto.secretaria !== undefined) usuario.secretaria = updateUsuarioDto.secretaria;
+    if (updateUsuarioDto.telefone !== undefined) usuario.telefone = updateUsuarioDto.telefone;
+    if (updateUsuarioDto.cargo !== undefined) usuario.cargo = updateUsuarioDto.cargo;
+    if (updateUsuarioDto.foto !== undefined) usuario.foto = updateUsuarioDto.foto;
+    if (updateUsuarioDto.isActive !== undefined) usuario.isActive = updateUsuarioDto.isActive;
+    if (updateUsuarioDto.activatedAt !== undefined) usuario.activatedAt = updateUsuarioDto.activatedAt;
 
     // Atualização de senha exige senha atual
     if (updateUsuarioDto.senha !== undefined) {

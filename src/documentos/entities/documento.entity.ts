@@ -5,6 +5,7 @@ import {
   ManyToOne,
   ChildEntity,
   TableInheritance,
+  CreateDateColumn,
 } from 'typeorm';
 import { Requerimento } from '../../requerimentos/entities/requerimento.entity';
 
@@ -19,6 +20,9 @@ export class Documento {
 
   @ManyToOne(() => Requerimento, (requerimento) => requerimento.documentos, { onDelete: 'CASCADE' })
   requerimento: Requerimento;
+
+  @CreateDateColumn({ name: 'data_envio' })
+  dataEnvio: Date;
 }
 
 @ChildEntity()
