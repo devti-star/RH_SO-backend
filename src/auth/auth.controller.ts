@@ -21,6 +21,7 @@ export class AuthController {
   @ApiPaginatedResponse(Usuario)
   @Get('me')
   me(@CurrentUser() usuario: Usuario){
+    console.log(usuario);
     return usuario;
   }
 }
