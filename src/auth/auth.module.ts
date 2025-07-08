@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 
@@ -13,7 +13,7 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 @Module({
   imports: [
     ConfigModule,
-    UsuariosModule,
+    forwardRef(() => UsuariosModule),
     PassportModule, 
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -28,5 +28,6 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
   ],
   controllers: [AuthController],
   providers: [AuthService, LocalStrategy, JwtStrategy, LocalAuthGuard],
+  exports: [AuthService]
 })
 export class AuthModule {}

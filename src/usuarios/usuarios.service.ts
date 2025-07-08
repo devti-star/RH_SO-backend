@@ -15,13 +15,12 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Usuario, Medico, Enfermeiro } from "./entities/usuario.entity";
 import { Role } from "src/enums/role.enum";
 import { compareSync, hashSync } from "bcrypt";
-import * as crypto from 'crypto';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as crypto from "crypto";
+import * as fs from "fs";
+import * as path from "path";
 import { RequerimentosService } from "src/requerimentos/requerimentos.service";
 import { UsuarioNotFoundException } from "src/shared/exceptions/usuario-not-found.exception";
 import { Usuariofactory } from "src/shared/factory/usuario-factory";
-
 
 @Injectable()
 export class UsuariosService {
@@ -33,7 +32,7 @@ export class UsuariosService {
     @InjectRepository(Enfermeiro)
     private readonly repositorioEnfermeiro: Repository<Enfermeiro>,
     @Inject(forwardRef(() => RequerimentosService))
-    private readonly requerimentosService: RequerimentosService,
+    private readonly requerimentosService: RequerimentosService
   ) {}
 
   async activateUser(userId: number): Promise<void> {
@@ -44,30 +43,27 @@ export class UsuariosService {
   }
 
   async activateByToken(id: number): Promise<Usuario> {
-    const usuario = await this.repositorioUsuario.findOne({ 
-      where: { id: id } 
+    const usuario = await this.repositorioUsuario.findOne({
+      where: { id: id },
     });
-    
+
     if (!usuario) {
-      throw new NotFoundException('Token de ativação inválido');
+      throw new NotFoundException("Token de ativação inválido");
     }
-    
+
     await this.activateUser(usuario.id);
     return usuario;
   }
 
-
   async criar(createUsuarioDto: CreateUsuarioDto): Promise<Usuario> {
     try {
       const novoUsuario = this.criaUsuarioPorRole(createUsuarioDto);
-      novoUsuario.activationToken = crypto.randomBytes(32).toString('hex');
       novoUsuario.isActive = false;
       novoUsuario.foto = null;
-    return await this.salvaUsuarioPorRole(novoUsuario);
-    } catch {
+      return await this.salvaUsuarioPorRole(novoUsuario);
+    } catch (error) {
       throw new BadRequestException(error.message || "Erro ao criar usuário.");
     }
-
   }
 
   async atualizarFoto(id: number, filename: string) {
@@ -77,14 +73,13 @@ export class UsuariosService {
     });
     if (!usuario) throw new NotFoundException("Usuário não encontrado!");
     if (usuario.foto) {
-      const oldPath = path.join('./fotosUsuario', usuario.foto);
+      const oldPath = path.join("./fotosUsuario", usuario.foto);
       fs.promises.unlink(oldPath).catch(() => {});
     }
     usuario.foto = filename;
     await this.repositorioUsuario.save(usuario);
     return usuario;
   }
-
 
   async findAll() {
     const usuarios = await this.repositorioUsuario.find({
@@ -96,25 +91,24 @@ export class UsuariosService {
     return usuarios;
   }
 
-  async findAllRequerimentsOfUser(idUser: number){
+  async findAllRequerimentsOfUser(idUser: number) {
     const usuario = await this.findOne(idUser);
 
-    if(!usuario)
-      throw new UsuarioNotFoundException(idUser);
+    if (!usuario) throw new UsuarioNotFoundException(idUser);
 
-    const meusRequerimentos = await this.requerimentosService.findAllRequerimentsUser(idUser);
+    const meusRequerimentos =
+      await this.requerimentosService.findAllRequerimentsUser(idUser);
     return meusRequerimentos;
   }
 
   async findOne(
     id: number,
     campos: (keyof UsuarioResponseDto)[] = []
-  ): Promise<Partial<UsuarioResponseDto>> {
-
+  ): Promise<UsuarioResponseDto> {
     const usuario = await this.repositorioUsuario.findOne({
       where: { id },
       select: campos.length > 0 ? campos : undefined,
-      relations: campos.includes("rg") ? { rg: true } : { rg: false},
+      relations: campos.includes("rg") ? { rg: true } : { rg: false },
     });
 
     if (!usuario) {
@@ -123,7 +117,6 @@ export class UsuariosService {
     const usuarioResponse: UsuarioResponseDto = new UsuarioResponseDto(usuario);
     return usuarioResponse;
   }
-
 
   async findByEmail(
     email: string,
@@ -162,7 +155,6 @@ export class UsuariosService {
     id: number,
     updateUsuarioDto: UpdateUsuarioDto
   ): Promise<UsuarioResponseDto> {
-
     const usuario = await this.repositorioUsuario.findOne({
       where: { id },
       relations: { rg: true },
@@ -187,14 +179,22 @@ export class UsuariosService {
     }
 
     // Atualiza apenas campos permitidos
-    if (updateUsuarioDto.nomeCompleto !== undefined) usuario.nomeCompleto = updateUsuarioDto.nomeCompleto;
-    if (updateUsuarioDto.departamento !== undefined) usuario.departamento = updateUsuarioDto.departamento;
-    if (updateUsuarioDto.secretaria !== undefined) usuario.secretaria = updateUsuarioDto.secretaria;
-    if (updateUsuarioDto.telefone !== undefined) usuario.telefone = updateUsuarioDto.telefone;
-    if (updateUsuarioDto.cargo !== undefined) usuario.cargo = updateUsuarioDto.cargo;
-    if (updateUsuarioDto.foto !== undefined) usuario.foto = updateUsuarioDto.foto;
-    if (updateUsuarioDto.isActive !== undefined) usuario.isActive = updateUsuarioDto.isActive;
-    if (updateUsuarioDto.activatedAt !== undefined) usuario.activatedAt = updateUsuarioDto.activatedAt;
+    if (updateUsuarioDto.nomeCompleto !== undefined)
+      usuario.nomeCompleto = updateUsuarioDto.nomeCompleto;
+    if (updateUsuarioDto.departamento !== undefined)
+      usuario.departamento = updateUsuarioDto.departamento;
+    if (updateUsuarioDto.secretaria !== undefined)
+      usuario.secretaria = updateUsuarioDto.secretaria;
+    if (updateUsuarioDto.telefone !== undefined)
+      usuario.telefone = updateUsuarioDto.telefone;
+    if (updateUsuarioDto.cargo !== undefined)
+      usuario.cargo = updateUsuarioDto.cargo;
+    if (updateUsuarioDto.foto !== undefined)
+      usuario.foto = updateUsuarioDto.foto;
+    if (updateUsuarioDto.isActive !== undefined)
+      usuario.isActive = updateUsuarioDto.isActive;
+    if (updateUsuarioDto.activatedAt !== undefined)
+      usuario.activatedAt = updateUsuarioDto.activatedAt;
 
     // Atualização de senha exige senha atual
     if (updateUsuarioDto.senha !== undefined) {
@@ -225,14 +225,16 @@ export class UsuariosService {
     return `This action removes a #${id} usuario`;
   }
 
-    // Mantém seu método de criação por role (pode ser igual ao que você já tem):
+  // Mantém seu método de criação por role (pode ser igual ao que você já tem):
   private criaUsuarioPorRole(criaUsuarioDto: CreateUsuarioDto): Usuario {
-      const usuario = Usuariofactory.createUsuario(criaUsuarioDto);
-      return usuario;
+    const usuario = Usuariofactory.createUsuario(criaUsuarioDto);
+    return usuario;
   }
 
-
-  getColumnsforUser(usuario: Usuario, id: number): (keyof UsuarioResponseDto)[] {
+  getColumnsforUser(
+    usuario: Usuario,
+    id: number
+  ): (keyof UsuarioResponseDto)[] {
     const campos = [
       "id",
       "nomeCompleto",
@@ -249,9 +251,11 @@ export class UsuariosService {
     // console.log("Usuario.id = ", usuario.id, "\nreq.id = ", id);
 
     if (usuario.role !== Role.PADRAO) {
-      if (usuario.role === Role.ADMIN || usuario.role === Role.MEDICO) return campos;
-        
-      if (usuario.id !== id) return campos.filter((campo) => campo !== "cpf" && campo !== "rg");
+      if (usuario.role === Role.ADMIN || usuario.role === Role.MEDICO)
+        return campos;
+
+      if (usuario.id !== id)
+        return campos.filter((campo) => campo !== "cpf" && campo !== "rg");
 
       return campos;
     }
