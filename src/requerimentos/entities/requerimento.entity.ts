@@ -28,7 +28,7 @@ export class Requerimento {
   @Column({ type: "int" })
   tipo: TipoRequerimento;
 
-  @Column()
+  @Column({ nullable: true })
   assinatura: string;
 
   @Column({ type: "int" })
