@@ -30,7 +30,7 @@ export class RequerimentosService {
         ...createRequerimentoDto,
         usuario: usuario});
 
-        this.repositorioRequerimento.save(novoRequerimento); 
+        const requerimentoSalvo = await this.repositorioRequerimento.save(novoRequerimento); 
       return new RequerimentoReponseDto(novoRequerimento);
   }
 
