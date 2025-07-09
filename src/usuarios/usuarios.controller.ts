@@ -35,6 +35,8 @@ import { Usuario } from "./entities/usuario.entity";
 import { ChangePasswordDto } from "./dto/change-password-usuario.dto";
 import { AuthService } from "src/auth/auth.service";
 import { compareSync } from "bcrypt";
+import { ResetPasswordDto } from "./dto/reset-password-usuario.dto";
+import { ForgotPassword } from "./dto/forgot_password.dto";
 
 @UseGuards(RolesGuard)
 @Controller("usuarios")
@@ -45,7 +47,7 @@ export class UsuariosController {
     private readonly tokenService: TokenGenerateService,
     private readonly configService: ConfigService,
     private readonly authService: AuthService
-  ) {}
+  ) { }
 
   @Post()
   @IsPublic()
@@ -54,9 +56,6 @@ export class UsuariosController {
     const usuario = await this.usuariosService.criar(createUsuarioDto);
     const token = await this.tokenService.generateToken(usuario.id);
     const link = this.configService.get<string>("ACTIVATE_LINK") + "/" + token;
-    console.log(link);
-    console.log(usuario.email);
-    // Enviar email de ativação
 
     await this.mailService.sendActivationEmail(
       usuario.email,
@@ -67,7 +66,26 @@ export class UsuariosController {
     return {
       message:
         "Usuário criado com sucesso! Verifique seu email para ativar a conta.",
-      userId: usuario.id,
+    };
+  }
+
+  @Post("/forgotpassword")
+  @IsPublic()
+  @HttpCode(200)
+  async forgot_password(@Body() forgotPassword: ForgotPassword) {
+    const usuario = await this.usuariosService.findByEmail(forgotPassword.email);
+    const token = await this.tokenService.generateToken(usuario.id);
+    const link = this.configService.get<string>("FORGOT_PASSWORD") + "/" + token;
+
+    await this.mailService.sendRecoveryEmail(
+      usuario.email,
+      usuario.nomeCompleto,
+      link
+    );
+
+    return {
+      message:
+        "Email enviado com Sucesso.",
     };
   }
 
@@ -136,14 +154,21 @@ export class UsuariosController {
     return this.usuariosService.findByEmail(email);
   }
 
+  @Patch("recoverypassword/:token")
+  @IsPublic()
+  async RecoveryPassword(@Param("token") token: string, @Body() resetPasswordDto: ResetPasswordDto){
+    const id: number = await this.tokenService.validateToken(token);
+    await this.usuariosService.update(id, {senha: resetPasswordDto.newPassword});
+    return {message: "Senha alterado com sucesso."}
+  }
+
   @Patch("mudar-senha")
   async changePassword(
     @CurrentUser() user: Usuario,
     @Body() changePasswordDto: ChangePasswordDto
   ) {
-    console.log("Entrou")
-    await this.authService.changePassword(user,changePasswordDto);
-    return {message: "Senha alterada com sucesso, bigode!"};
+    await this.authService.changePassword(user, changePasswordDto);
+    return {message: "Senha alterada com sucesso!"};
   }
 
   @Patch(":id")
