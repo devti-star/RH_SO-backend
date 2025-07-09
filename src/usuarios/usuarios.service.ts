@@ -195,26 +195,8 @@ export class UsuariosService {
       usuario.isActive = updateUsuarioDto.isActive;
     if (updateUsuarioDto.activatedAt !== undefined)
       usuario.activatedAt = updateUsuarioDto.activatedAt;
-
-    // Atualização de senha exige senha atual
-    if (updateUsuarioDto.senha !== undefined) {
-      if (!updateUsuarioDto.senhaAtual) {
-        throw new BadRequestException(
-          "É necessário informar a senha atual para alterar a senha."
-        );
-      }
-      if (usuario.senha) {
-        // Compara senha informada com hash salvo
-        const senhaConfere = compareSync(
-          updateUsuarioDto.senhaAtual,
-          usuario.senha
-        );
-        if (!senhaConfere) {
-          throw new BadRequestException("Senha atual incorreta.");
-        }
-        usuario.senha = hashSync(updateUsuarioDto.senha, 10);
-      }
-    }
+    if (updateUsuarioDto.senha)
+      usuario.senha = hashSync(updateUsuarioDto.senha, 10);
 
     await this.repositorioUsuario.save(usuario);
     const usuarioResponse: UsuarioResponseDto = new UsuarioResponseDto(usuario);
