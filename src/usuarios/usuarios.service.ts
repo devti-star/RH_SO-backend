@@ -246,6 +246,7 @@ export class UsuariosService {
       "departamento",
       "telefone",
       "cargo",
+      "foto"
     ] as (keyof UsuarioResponseDto)[];
 
     // console.log("Usuario.id = ", usuario.id, "\nreq.id = ", id);
