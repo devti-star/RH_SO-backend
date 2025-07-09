@@ -71,7 +71,6 @@ export class UsuariosController {
       Demais roles tem acesso limitado às informações dos demais usuários (rg e cpf ficam de fora)
   */
   @Get(":id")
-  @UseGuards(DefaultIdGuard)
   async findOne(
     @Param("id", ParseIntPipe) id: number,
     @CurrentUser() usuario: Usuario

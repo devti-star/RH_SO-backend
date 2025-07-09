@@ -11,9 +11,9 @@ import { MailModule } from "./mail/mail.module";
 import { AuthModule } from "./auth/auth.module";
 import { APP_FILTER, APP_GUARD } from "@nestjs/core";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
-import { ActivationController } from './usuarios/activation.controller';
-import { DocumentosModule } from './documentos/documentos.module';
-
+import { ActivationController } from "./usuarios/activation.controller";
+import { DocumentosModule } from "./documentos/documentos.module";
+import { DefaultIdGuard } from "./auth/guards/check-id-default-user.guard";
 
 @Module({
   imports: [
@@ -41,7 +41,11 @@ import { DocumentosModule } from './documentos/documentos.module';
   ],
 
   controllers: [AppController, ActivationController],
-  providers: [AppService, { provide: APP_GUARD, useClass: JwtAuthGuard }],
+  providers: [
+    AppService,
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: DefaultIdGuard },
+  ],
 })
 export class AppModule {}
 
