@@ -35,6 +35,7 @@ import { Usuario } from "./entities/usuario.entity";
 import { ChangePasswordDto } from "./dto/change-password-usuario.dto";
 import { AuthService } from "src/auth/auth.service";
 import { compareSync } from "bcrypt";
+import { ForgotPassword } from "./dto/forgot_password.dto";
 
 @UseGuards(RolesGuard)
 @Controller("usuarios")
@@ -45,7 +46,7 @@ export class UsuariosController {
     private readonly tokenService: TokenGenerateService,
     private readonly configService: ConfigService,
     private readonly authService: AuthService
-  ) {}
+  ) { }
 
   @Post()
   @IsPublic()
@@ -54,9 +55,6 @@ export class UsuariosController {
     const usuario = await this.usuariosService.criar(createUsuarioDto);
     const token = await this.tokenService.generateToken(usuario.id);
     const link = this.configService.get<string>("ACTIVATE_LINK") + "/" + token;
-    console.log(link);
-    console.log(usuario.email);
-    // Enviar email de ativação
 
     await this.mailService.sendActivationEmail(
       usuario.email,
@@ -67,7 +65,26 @@ export class UsuariosController {
     return {
       message:
         "Usuário criado com sucesso! Verifique seu email para ativar a conta.",
-      userId: usuario.id,
+    };
+  }
+
+  @Post()
+  @IsPublic()
+  @HttpCode(200)
+  async forgot_password(@Body() forgotPassword: ForgotPassword) {
+    const usuario = await this.usuariosService.findByEmail(forgotPassword.email);
+    const token = await this.tokenService.generateToken(usuario.id);
+    const link = this.configService.get<string>("FORGOT_PASSWORD") + "/" + token;
+
+    await this.mailService.sendRecoveryEmail(
+      usuario.email,
+      usuario.nomeCompleto,
+      link
+    );
+
+    return {
+      message:
+        "Email enviado com Sucesso.",
     };
   }
 
@@ -142,8 +159,8 @@ export class UsuariosController {
     @Body() changePasswordDto: ChangePasswordDto
   ) {
     console.log("Entrou")
-    await this.authService.changePassword(user,changePasswordDto);
-    return {message: "Senha alterada com sucesso, bigode!"};
+    await this.authService.changePassword(user, changePasswordDto);
+    return { message: "Senha alterada com sucesso, bigode!" };
   }
 
   @Patch(":id")
