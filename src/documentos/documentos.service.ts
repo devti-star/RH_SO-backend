@@ -8,6 +8,7 @@ import * as path from 'path';
 import { Requerimento } from '../requerimentos/entities/requerimento.entity';
 import { FileStorageService } from '../shared/services/file-storage.service';
 import { CreateAtestadoDto } from './dto/create-atestado.dto';
+import { DocumentNotFoundException } from 'src/shared/exceptions/document-not-found.exception';
 
 @Injectable()
 export class DocumentosService {
@@ -15,7 +16,7 @@ export class DocumentosService {
 
   constructor(
     @InjectRepository(Documento)
-    private readonly repo: Repository<Documento>,
+    private readonly repositorioDocumento: Repository<Documento>,
     private readonly fileStorage: FileStorageService,
   ) {
   }
@@ -31,11 +32,22 @@ export class DocumentosService {
     const destino = path.join(this.uploadDir, filename);
     await fs.promises.writeFile(destino, file.buffer);
 
-    const doc = this.repo.create({
+    const doc = this.repositorioDocumento.create({
       caminho: filename,
       requerimento: { id: requerimentoId } as Requerimento,
     });
-    return this.repo.save(doc);
+    return this.repositorioDocumento.save(doc);
+  }
+
+  async findOne(id: number) {
+    const documento = await this.repositorioDocumento.findOne({
+      where: { id }
+    })
+
+    if(!documento)
+      throw new DocumentNotFoundException(id);
+
+    return documento;
   }
 
   async createAtestado(createAtestado: CreateAtestadoDto){
