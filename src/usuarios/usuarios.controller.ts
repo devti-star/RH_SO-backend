@@ -35,6 +35,7 @@ import { Usuario } from "./entities/usuario.entity";
 import { ChangePasswordDto } from "./dto/change-password-usuario.dto";
 import { AuthService } from "src/auth/auth.service";
 import { compareSync } from "bcrypt";
+import { ResetPasswordDto } from "./dto/reset-password-usuario.dto";
 
 @UseGuards(RolesGuard)
 @Controller("usuarios")
@@ -53,7 +54,7 @@ export class UsuariosController {
   async create(@Body() createUsuarioDto: CreateUsuarioDto) {
     const usuario = await this.usuariosService.criar(createUsuarioDto);
     const token = await this.tokenService.generateToken(usuario.id);
-    const link = this.configService.get<string>("ACTIVATE_LINK") + "/" + token;
+    const link = this.configService.get<string>("ACTIVATE_LINK") + token;
     console.log(link);
     console.log(usuario.email);
     // Enviar email de ativação
@@ -136,13 +137,20 @@ export class UsuariosController {
     return this.usuariosService.findByEmail(email);
   }
 
+  @Patch("esqueceu-senha/:token")
+  @IsPublic()
+  async RecoveryPassword(@Body() resetPasswordDto: ResetPasswordDto, @Param() token: string){
+    const id: number = await this.tokenService.validateToken(token);
+    await this.usuariosService.update(id, {senha: resetPasswordDto.newPassword});
+    return {message: "Senha alterado com sucesso, bigode! Marcha no progresso!"}
+  }
+
   @Patch("mudar-senha")
   async changePassword(
     @CurrentUser() user: Usuario,
     @Body() changePasswordDto: ChangePasswordDto
   ) {
-    console.log("Entrou")
-    await this.authService.changePassword(user,changePasswordDto);
+    await this.authService.changePassword(user, changePasswordDto);
     return {message: "Senha alterada com sucesso, bigode!"};
   }
 
