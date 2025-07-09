@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { UsuariosService } from "../usuarios/usuarios.service";
 import { UserToken } from "./models/user-token.model";
@@ -46,7 +46,10 @@ export class AuthService {
   }
 
   async changePassword(user: Usuario, changePasswordDto: ChangePasswordDto) {
-    const usuario = await this.usuarioService.findByEmailcomSenha(user.email);
+    const usuario = await this.usuarioService.findByEmailcomSenha(user.email); //Discutível a real necessidade de buscar pelo usuário correspondente ao email contido no payload, uma vez que este já possui o id
+
+    if (user.id !== usuario.id)
+      throw new UnauthorizedException("o e-mail informado não corresponde ao do usuário logado");
 
     const isPasswordValid = usuario?.senha
       ? compareSync(changePasswordDto.currentPassword, usuario.senha)
@@ -54,7 +57,6 @@ export class AuthService {
 
     if (isPasswordValid) {
       await this.usuarioService.update(usuario.id, {
-        senhaAtual: changePasswordDto.currentPassword,
         senha: changePasswordDto.newPassword,
       });
     } else {
