@@ -72,7 +72,7 @@ export class UsuariosService {
       relations: { rg: true }, // carrega o RG vinculado!
     });
     if (!usuario) throw new NotFoundException("Usuário não encontrado!");
-    if (usuario.foto) {
+    if (usuario.foto && usuario.foto !== filename) {
       const oldPath = path.join("./fotosUsuario", usuario.foto);
       fs.promises.unlink(oldPath).catch(() => {});
     }
