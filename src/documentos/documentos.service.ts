@@ -15,14 +15,14 @@ export class DocumentosService {
 
   constructor(
     @InjectRepository(Documento)
-    private readonly repo: Repository<Documento>,
+    private readonly documentoRepository: Repository<Documento>,
     private readonly fileStorage: FileStorageService,
   ) {
   }
 
   async create(requerimentoId: number, file: Express.Multer.File): Promise<Documento> {
     if (!file) {
-      throw new BadRequestException('Arquivo não enviado');
+      throw new BadRequestException('Arquivo não enviado, é obhrigatório seu envio');
     }
 
     const timestamp = Date.now();
@@ -31,14 +31,21 @@ export class DocumentosService {
     const destino = path.join(this.uploadDir, filename);
     await fs.promises.writeFile(destino, file.buffer);
 
-    const doc = this.repo.create({
+    const doc = this.documentoRepository.create({
       caminho: filename,
       requerimento: { id: requerimentoId } as Requerimento,
     });
-    return this.repo.save(doc);
+    return this.documentoRepository.save(doc);
   }
 
-  async createAtestado(createAtestado: CreateAtestadoDto){
-    
+  async findAllDocumentofRequerimento(requerimentoId: number){
+    const documents =  this.documentoRepository.find({
+      where: {
+        requerimento: {
+          id: requerimentoId,
+        },
+      },
+    });
+    return documents;
   }
 }

@@ -31,19 +31,22 @@ export class RequerimentosService {
         usuario: usuario});
 
         const requerimentoSalvo = await this.repositorioRequerimento.save(novoRequerimento); 
-      return new RequerimentoReponseDto(novoRequerimento);
+      return new RequerimentoReponseDto(requerimentoSalvo);
   }
 
-  async findAll() {
+async findAll() {
     const requerimentos: Requerimento[] = await this.repositorioRequerimento.find({
       relations: {
         usuario: {
           rg: true,
-        }
+        },
+        documentos: true,
       },
     });
+
     return requerimentos;
-  }
+}
+
 
   async findAllRequerimentsUser(idUsuario: number){
     const requerimentos: Requerimento[] = await this.repositorioRequerimento.find({

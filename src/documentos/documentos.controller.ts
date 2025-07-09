@@ -28,14 +28,6 @@ export class DocumentosController {
     @UploadedFile() file: Express.Multer.File,
     @Body('requerimentoId', ParseIntPipe) requerimentoId: number,
   ): Promise<Documento> {
-    if (!file) {
-      throw new BadRequestException('Campo arquivo é obrigatório');
-    }
     return this.documentosService.create(requerimentoId, file);
-  }
-
-  @Post('/atestados')
-  create(@Body() createAtestadoDto: CreateAtestadoDto){
-    return this.documentosService.createAtestado(createAtestadoDto);
   }
 }
