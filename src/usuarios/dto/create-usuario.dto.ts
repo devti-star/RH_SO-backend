@@ -74,10 +74,6 @@ export class CreateUsuarioDto {
   @IsString()
   senha: string;
 
-  @IsOptional()
-  @IsString()
-  foto?: string;
-
   @Type(() => Number)
   @IsNotEmpty()
   @IsEnum(Role)

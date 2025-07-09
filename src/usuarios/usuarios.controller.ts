@@ -15,15 +15,18 @@ import {
   HttpStatus,
   BadRequestException,
   HttpCode,
+  Res,
+  ForbiddenException,
+  NotFoundException,
 } from "@nestjs/common";
 import { UsuariosService } from "./usuarios.service";
 import { CreateUsuarioDto } from "./dto/create-usuario.dto";
 import { UpdateUsuarioDto } from "./dto/update-usuario.dto";
 import { UsuarioResponseDto } from "./dto/usuario-response.dto";
-import { MailService } from 'src/mail/mail.service';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import * as path from 'path';
+import { MailService } from "src/mail/mail.service";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { diskStorage } from "multer";
+import * as path from "path";
 import { RolesGuard } from "src/auth/guards/roles.guard";
 import { Roles } from "src/shared/decorators/roles.decorator";
 import { Role } from "src/enums/role.enum";
@@ -32,6 +35,13 @@ import { TokenGenerateService } from "src/shared/services/token-generate.service
 import { ConfigService } from "@nestjs/config";
 import { CurrentUser } from "src/shared/decorators/current-user.decorator";
 import { Usuario } from "./entities/usuario.entity";
+import { ChangePasswordDto } from "./dto/change-password-usuario.dto";
+import { AuthService } from "src/auth/auth.service";
+import * as fs from "fs";
+import { compareSync } from "bcrypt";
+import { ResetPasswordDto } from "./dto/reset-password-usuario.dto";
+import { ForgotPassword } from "./dto/forgot_password.dto";
+
 
 @UseGuards(RolesGuard)
 @Controller("usuarios")
@@ -39,10 +49,10 @@ export class UsuariosController {
   constructor(
     private readonly usuariosService: UsuariosService,
     private readonly mailService: MailService,
-    private readonly tokenService:TokenGenerateService,
-    private readonly configService: ConfigService
-  ) {}
-
+    private readonly tokenService: TokenGenerateService,
+    private readonly configService: ConfigService,
+    private readonly authService: AuthService
+  ) { }
 
   @Post()
   @IsPublic()
@@ -51,9 +61,6 @@ export class UsuariosController {
     const usuario = await this.usuariosService.criar(createUsuarioDto);
     const token = await this.tokenService.generateToken(usuario.id);
     const link = this.configService.get<string>("ACTIVATE_LINK") + "/" + token;
-    console.log(link);
-    console.log(usuario.email);
-    // Enviar email de ativação
 
     await this.mailService.sendActivationEmail(
       usuario.email,
@@ -62,16 +69,36 @@ export class UsuariosController {
     );
 
     return {
-      message: "Usuário criado com sucesso! Verifique seu email para ativar a conta.",
-      userId: usuario.id,
+      message:
+        "Usuário criado com sucesso! Verifique seu email para ativar a conta.",
     };
   }
 
-  @Patch('foto/:id')
+  @Post("/forgotpassword")
+  @IsPublic()
+  @HttpCode(200)
+  async forgot_password(@Body() forgotPassword: ForgotPassword) {
+    const usuario = await this.usuariosService.findByEmail(forgotPassword.email);
+    const token = await this.tokenService.generateToken(usuario.id);
+    const link = this.configService.get<string>("FORGOT_PASSWORD") + "/" + token;
+
+    await this.mailService.sendRecoveryEmail(
+      usuario.email,
+      usuario.nomeCompleto,
+      link
+    );
+
+    return {
+      message:
+        "Email enviado com Sucesso.",
+    };
+  }
+
+  @Patch("foto/:id")
   @UseInterceptors(
-    FileInterceptor('foto', {
+    FileInterceptor("foto", {
       storage: diskStorage({
-        destination: './fotosUsuario',
+        destination: "./fotosUsuario",
         filename: (req, file, cb) => {
           const ext = path.extname(file.originalname);
           cb(null, `${req.params.id}_profile${ext}`);
@@ -79,17 +106,52 @@ export class UsuariosController {
       }),
       // (opcional: filtro de tipo/limite de tamanho)
       // fileFilter: ...
-    }),
+    })
   )
   async uploadFoto(
-    @Param('id', ParseIntPipe) id: number,
-    @UploadedFile() foto: Express.Multer.File
+    @Param("id", ParseIntPipe) id: number,
+    @UploadedFile() foto: Express.Multer.File,
+    @CurrentUser() usuario: Usuario,
   ) {
+    console.log('Upload de foto:', {
+      id,
+      usuarioId: usuario.id,
+      usuarioRole: usuario.role,
+      file: foto,
+      filePath: foto?.path,
+      fileName: foto?.filename,
+    });
+
+    if (usuario.id !== id && usuario.role !== Role.ADMIN) {
+      throw new HttpException("Você só pode alterar sua própria foto.", HttpStatus.FORBIDDEN);
+    }
     if (!foto) throw new BadRequestException("Foto não enviada!");
 
     // Atualize no banco:
     await this.usuariosService.atualizarFoto(id, foto.filename);
     return { message: "Foto salva com sucesso.", foto: foto.filename };
+  }
+  
+  @Get("foto/:id")
+  async serveFoto(
+    @Param("id", ParseIntPipe) id: number,
+    @Res() res,
+    @CurrentUser() usuario: Usuario
+  ) {
+    // Só o dono ou admin pode acessar
+    if (usuario.id !== id && usuario.role !== Role.ADMIN) {
+      throw new ForbiddenException("Acesso negado");
+    }
+    // Pegue o usuário e verifique se há foto
+    const user = await this.usuariosService.findOne(id, ["foto"]);
+    if (!user || !user.foto) throw new NotFoundException();
+    const caminho = path.join(process.cwd(), "fotosUsuario", user.foto);
+
+    // Verifique se o arquivo existe
+    if (!fs.existsSync(caminho)) throw new NotFoundException();
+
+    // Envie o arquivo de forma segura
+    return res.sendFile(caminho);
   }
 
   @Roles(
@@ -105,8 +167,8 @@ export class UsuariosController {
     return this.usuariosService.findAll();
   }
 
-  @Get(':id/requerimentos')
-  findAllRequerimentosOfUser(@Param('id', ParseIntPipe) id: number){
+  @Get(":id/requerimentos")
+  findAllRequerimentosOfUser(@Param("id", ParseIntPipe) id: number) {
     return this.usuariosService.findAllRequerimentsOfUser(id);
   }
 
@@ -132,9 +194,26 @@ export class UsuariosController {
     return this.usuariosService.findByEmail(email);
   }
 
+  @Patch("recoverypassword/:token")
+  @IsPublic()
+  async RecoveryPassword(@Param("token") token: string, @Body() resetPasswordDto: ResetPasswordDto){
+    const id: number = await this.tokenService.validateToken(token);
+    await this.usuariosService.update(id, {senha: resetPasswordDto.newPassword});
+    return {message: "Senha alterado com sucesso."}
+  }
+
+  @Patch("mudar-senha")
+  async changePassword(
+    @CurrentUser() user: Usuario,
+    @Body() changePasswordDto: ChangePasswordDto
+  ) {
+    await this.authService.changePassword(user, changePasswordDto);
+    return {message: "Senha alterada com sucesso!"};
+  }
+
   @Patch(":id")
   async update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param("id", ParseIntPipe) id: number,
     @Body() updateUsuarioDto: UpdateUsuarioDto
   ) {
     await this.usuariosService.update(id, updateUsuarioDto);
@@ -143,7 +222,7 @@ export class UsuariosController {
 
   @HttpCode(204)
   @Delete(":id")
-  remove(@Param('id', ParseIntPipe) id: number) {
+  remove(@Param("id", ParseIntPipe) id: number) {
     return this.usuariosService.remove(id);
   }
 }
