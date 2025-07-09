@@ -1,29 +1,48 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Request } from "express";
 import { Role } from "src/enums/role.enum";
+import { IS_PUBLIC_KEY } from "src/shared/decorators/is-public.decorator";
 import { Roles } from "src/shared/decorators/roles.decorator";
+import { UsuarioUnauthenticate } from "src/shared/exceptions/unauthenticate-user.exception";
+import { UsuarioNotFoundException } from "src/shared/exceptions/usuario-not-found.exception";
 import { Usuario } from "src/usuarios/entities/usuario.entity";
 
 @Injectable()
-export class DefaultIdGuard implements CanActivate{
-    constructor(private readonly reflector: Reflector){}
+export class DefaultIdGuard implements CanActivate {
+  constructor(private readonly reflector: Reflector) {}
 
-    canActivate(context: ExecutionContext): boolean {
-        const request: Request = context.switchToHttp().getRequest();
+  canActivate(context: ExecutionContext): boolean {
+    const request: Request = context.switchToHttp().getRequest();
 
-        const id_petitioner = Number(request.params.id);
-        const user = request.user;
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
-        // Não há usuário no sistema. Não é nem para chegar aqui, mas vai que, né?
-        if (!user) return false; 
+    const id_petitioner = Number(request.params.id);
+    const user = request.user;
+    
+    // A rota é pública, não é necessário verificar roles
+    if (isPublic) return true;
 
-        // O usuário não é do tipo padrão, logo, pode acessar informações que pertencem a outros
-        if (user.role !== Role.PADRAO) return true; 
+    // Não há usuário no sistema. Não é nem para chegar aqui, mas vai que, né?
+    if (!user) throw new UsuarioUnauthenticate();
 
-        // O usuário é padrão e tentou acessar dados que não lhe pertencem. Safado, achou que podia burlar o front
-        if (user.id !== id_petitioner) throw new UnauthorizedException();
+    // A rota não possui id como parâmetro, logo a verificação não se faz necessária
+    if (!id_petitioner) return true;
 
-        return true;
-    }
+    // O usuário não é do tipo padrão, logo, pode acessar informações que pertencem a outros
+    if (user.role !== Role.PADRAO) return true;
+
+    // O usuário é padrão e tentou acessar dados que não lhe pertencem. Safado, achou que podia burlar o front
+    if (user.id !== id_petitioner) throw new UnauthorizedException();
+
+    return true;
+  }
 }
