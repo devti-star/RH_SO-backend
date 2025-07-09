@@ -9,11 +9,17 @@ import { HistoricosModule } from "./historicos/historicos.module";
 import { RGModule } from "./rg/rg.module";
 import { MailModule } from "./mail/mail.module";
 import { AuthModule } from "./auth/auth.module";
-import { APP_FILTER, APP_GUARD } from "@nestjs/core";
+import { APP_GUARD } from "@nestjs/core";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
-import { ActivationController } from "./usuarios/activation.controller";
-import { DocumentosModule } from "./documentos/documentos.module";
+import { CacheModule } from '@nestjs/cache-manager';
+import { ActivationController } from './usuarios/activate/activate.controller';
+import { ActivateModule } from "./usuarios/activate/activate.module";
+import { SharedModule } from "./shared/services/shared.module";
+import { ActivateService } from "./usuarios/activate/activate.service";
+import { DocumentosModule } from './documentos/documentos.module';
 import { DefaultIdGuard } from "./auth/guards/check-id-default-user.guard";
+
+
 
 @Module({
   imports: [
@@ -31,12 +37,17 @@ import { DefaultIdGuard } from "./auth/guards/check-id-default-user.guard";
       autoLoadEntities: true,
       synchronize: true,
     }),
+    CacheModule.register({
+      ttl: 54000000
+    }),
     UsuariosModule,
     MailModule,
     RequerimentosModule,
     HistoricosModule,
     RGModule,
     AuthModule,
+    SharedModule, // Módulo compartilhado
+    ActivateModule, // Módulo do controller
     DocumentosModule,
   ],
 
@@ -48,5 +59,6 @@ import { DefaultIdGuard } from "./auth/guards/check-id-default-user.guard";
   ],
 })
 export class AppModule {}
+
 
 console.log("JWT_SECRET:", process.env.JWT_SECRET);

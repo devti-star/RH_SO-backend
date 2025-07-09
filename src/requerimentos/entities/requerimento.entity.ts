@@ -28,7 +28,7 @@ export class Requerimento {
   @Column({ type: "int" })
   tipo: TipoRequerimento;
 
-  @Column()
+  @Column({ nullable: true })
   assinatura: string;
 
   @Column({ type: "int" })
@@ -52,6 +52,6 @@ export class Requerimento {
   documentos: Documento[];
 
   // RELACIONAMENTO 1 PARA 1 COM HISTÓRICO (historico tem a foreign key)
-  @OneToOne(() => Historico, (historico) => historico.requerimento)
+  @OneToMany(() => Historico, (historico) => historico.requerimento)
   historico: Historico;
 }

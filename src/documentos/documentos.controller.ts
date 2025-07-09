@@ -6,11 +6,14 @@ import {
   Body,
   ParseIntPipe,
   BadRequestException,
+  Get,
+  Param,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { DocumentosService } from './documentos.service';
 import { Documento } from './entities/documento.entity';
+import { CreateAtestadoDto } from './dto/create-atestado.dto';
 
 @Controller('documentos')
 export class DocumentosController {
@@ -31,5 +34,15 @@ export class DocumentosController {
       throw new BadRequestException('Campo arquivo é obrigatório');
     }
     return this.documentosService.create(requerimentoId, file);
+  }
+
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.documentosService.findOne(id);
+  }
+
+  @Post('/atestados')
+  create(@Body() createAtestadoDto: CreateAtestadoDto){
+    return this.documentosService.createAtestado(createAtestadoDto);
   }
 }

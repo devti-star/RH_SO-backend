@@ -8,9 +8,9 @@ export class CreateRequerimentoDto {
   @IsEnum(TipoRequerimento)
   tipo: TipoRequerimento;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  assinatura: string;
+  assinatura?: string;
 
   @IsNotEmpty()
   @IsEnum(Status)

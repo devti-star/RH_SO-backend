@@ -78,8 +78,8 @@ export class Usuario {
   @Column({ select: false })
   senha?: string;
 
-  @Column({ nullable: true })
-  foto: string;
+  @Column({ nullable: true, type: 'varchar' })
+  foto: string | null;
 
   @Column({ type: "int" })
   role: Role;
@@ -100,8 +100,6 @@ export class Usuario {
   @Column({ nullable: true, type: 'timestamp' })
   activatedAt: Date;
 
-  @Column({ nullable: true })
-  activationToken: string;
 }
 
 @ChildEntity()

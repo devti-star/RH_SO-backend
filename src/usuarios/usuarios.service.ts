@@ -1,7 +1,9 @@
 import {
   BadRequestException,
+  forwardRef,
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
@@ -13,7 +15,12 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Usuario, Medico, Enfermeiro } from "./entities/usuario.entity";
 import { Role } from "src/enums/role.enum";
 import { compareSync, hashSync } from "bcrypt";
-import * as crypto from 'crypto';
+import * as crypto from "crypto";
+import * as fs from "fs";
+import * as path from "path";
+import { RequerimentosService } from "src/requerimentos/requerimentos.service";
+import { UsuarioNotFoundException } from "src/shared/exceptions/usuario-not-found.exception";
+import { Usuariofactory } from "src/shared/factory/usuario-factory";
 
 @Injectable()
 export class UsuariosService {
@@ -23,7 +30,9 @@ export class UsuariosService {
     @InjectRepository(Medico)
     private readonly repositorioMedico: Repository<Medico>,
     @InjectRepository(Enfermeiro)
-    private readonly repositorioEnfermeiro: Repository<Enfermeiro>
+    private readonly repositorioEnfermeiro: Repository<Enfermeiro>,
+    @Inject(forwardRef(() => RequerimentosService))
+    private readonly requerimentosService: RequerimentosService
   ) {}
 
   async activateUser(userId: number): Promise<void> {
@@ -33,55 +42,81 @@ export class UsuariosService {
     });
   }
 
-  async activateByToken(token: string): Promise<Usuario> {
-    const usuario = await this.repositorioUsuario.findOne({ 
-      where: { activationToken: token } 
+  async activateByToken(id: number): Promise<Usuario> {
+    const usuario = await this.repositorioUsuario.findOne({
+      where: { id: id },
     });
-    
+
     if (!usuario) {
-      throw new NotFoundException('Token de ativação inválido');
+      throw new NotFoundException("Token de ativação inválido");
     }
-    
+
     await this.activateUser(usuario.id);
     return usuario;
   }
 
-  async criar(createUsuarioDto: CreateUsuarioDto): Promise<Usuario | Medico | Enfermeiro> {
+  async criar(createUsuarioDto: CreateUsuarioDto): Promise<Usuario> {
     try {
       const novoUsuario = this.criaUsuarioPorRole(createUsuarioDto);
-      
-      // Gerar token de ativação
-      novoUsuario.activationToken = crypto.randomBytes(32).toString('hex');
       novoUsuario.isActive = false;
-      
+      novoUsuario.foto = null;
       return await this.salvaUsuarioPorRole(novoUsuario);
     } catch (error) {
       throw new BadRequestException(error.message || "Erro ao criar usuário.");
     }
   }
 
-  findAll() {
-    return `This action returns all usuarios`;
+  async atualizarFoto(id: number, filename: string) {
+    const usuario = await this.repositorioUsuario.findOne({
+      where: { id },
+      relations: { rg: true }, // carrega o RG vinculado!
+    });
+    if (!usuario) throw new NotFoundException("Usuário não encontrado!");
+    if (usuario.foto && usuario.foto !== filename) {
+      const oldPath = path.join("./fotosUsuario", usuario.foto);
+      fs.promises.unlink(oldPath).catch(() => {});
+    }
+    usuario.foto = filename;
+    await this.repositorioUsuario.save(usuario);
+    return usuario;
+  }
+
+  async findAll() {
+    const usuarios = await this.repositorioUsuario.find({
+      relations: {
+        rg: true,
+      },
+    });
+
+    return usuarios;
+  }
+
+  async findAllRequerimentsOfUser(idUser: number) {
+    const usuario = await this.findOne(idUser);
+
+    if (!usuario) throw new UsuarioNotFoundException(idUser);
+
+    const meusRequerimentos =
+      await this.requerimentosService.findAllRequerimentsUser(idUser);
+    return meusRequerimentos;
   }
 
   async findOne(
     id: number,
     campos: (keyof UsuarioResponseDto)[] = []
-  ): Promise<Partial<UsuarioResponseDto>> {
-
+  ): Promise<UsuarioResponseDto> {
     const usuario = await this.repositorioUsuario.findOne({
       where: { id },
       select: campos.length > 0 ? campos : undefined,
-      relations: campos.includes("rg") ? { rg: true } : { rg: false},
+      relations: campos.includes("rg") ? { rg: true } : { rg: false },
     });
 
     if (!usuario) {
-      throw new NotFoundException(`Usuário com id ${id} não encontrado.`);
+      throw new UsuarioNotFoundException(id);
     }
     const usuarioResponse: UsuarioResponseDto = new UsuarioResponseDto(usuario);
     return usuarioResponse;
   }
-
 
   async findByEmail(
     email: string,
@@ -120,7 +155,6 @@ export class UsuariosService {
     id: number,
     updateUsuarioDto: UpdateUsuarioDto
   ): Promise<UsuarioResponseDto> {
-
     const usuario = await this.repositorioUsuario.findOne({
       where: { id },
       relations: { rg: true },
@@ -141,7 +175,7 @@ export class UsuariosService {
     });
 
     if (!usuario) {
-      throw new NotFoundException(`Usuário com id ${id} não encontrado.`);
+      throw new UsuarioNotFoundException(id);
     }
 
     // Atualiza apenas campos permitidos
@@ -157,26 +191,12 @@ export class UsuariosService {
       usuario.cargo = updateUsuarioDto.cargo;
     if (updateUsuarioDto.foto !== undefined)
       usuario.foto = updateUsuarioDto.foto;
-
-    // Atualização de senha exige senha atual
-    if (updateUsuarioDto.senha !== undefined) {
-      if (!updateUsuarioDto.senhaAtual) {
-        throw new BadRequestException(
-          "É necessário informar a senha atual para alterar a senha."
-        );
-      }
-      if (usuario.senha) {
-        // Compara senha informada com hash salvo
-        const senhaConfere = compareSync(
-          updateUsuarioDto.senhaAtual,
-          usuario.senha
-        );
-        if (!senhaConfere) {
-          throw new BadRequestException("Senha atual incorreta.");
-        }
-        usuario.senha = hashSync(updateUsuarioDto.senha, 10);
-      }
-    }
+    if (updateUsuarioDto.isActive !== undefined)
+      usuario.isActive = updateUsuarioDto.isActive;
+    if (updateUsuarioDto.activatedAt !== undefined)
+      usuario.activatedAt = updateUsuarioDto.activatedAt;
+    if (updateUsuarioDto.senha)
+      usuario.senha = hashSync(updateUsuarioDto.senha, 10);
 
     await this.repositorioUsuario.save(usuario);
     const usuarioResponse: UsuarioResponseDto = new UsuarioResponseDto(usuario);
@@ -187,81 +207,16 @@ export class UsuariosService {
     return `This action removes a #${id} usuario`;
   }
 
-  private criaUsuarioPorRole(
-    criaUsuarioDto: CreateUsuarioDto
-  ): Usuario | Medico | Enfermeiro {
-    switch (criaUsuarioDto.role) {
-      case Role.PADRAO:
-      case Role.TRIAGEM:
-        return new Usuario(
-          criaUsuarioDto.nomeCompleto,
-          criaUsuarioDto.email,
-          criaUsuarioDto.cpf,
-          criaUsuarioDto.rg,
-          criaUsuarioDto.orgaoExpeditor,
-          criaUsuarioDto.senha,
-          criaUsuarioDto.matricula,
-          criaUsuarioDto.cargo,
-          criaUsuarioDto.role,
-          criaUsuarioDto.departamento,
-          criaUsuarioDto.secretaria,
-          criaUsuarioDto.telefone
-        );
-
-      case Role.MEDICO:
-        return new Medico(
-          criaUsuarioDto.nomeCompleto,
-          criaUsuarioDto.email,
-          criaUsuarioDto.cpf,
-          criaUsuarioDto.rg,
-          criaUsuarioDto.orgaoExpeditor,
-          criaUsuarioDto.senha,
-          criaUsuarioDto.matricula,
-          criaUsuarioDto.cargo,
-          criaUsuarioDto.role,
-          criaUsuarioDto.crm as string,
-          criaUsuarioDto.departamento,
-          criaUsuarioDto.secretaria,
-          criaUsuarioDto.telefone
-        );
-
-      case Role.ENFERMEIRO:
-        return new Enfermeiro(
-          criaUsuarioDto.nomeCompleto,
-          criaUsuarioDto.email,
-          criaUsuarioDto.cpf,
-          criaUsuarioDto.rg,
-          criaUsuarioDto.orgaoExpeditor,
-          criaUsuarioDto.senha,
-          criaUsuarioDto.matricula,
-          criaUsuarioDto.cargo,
-          criaUsuarioDto.role,
-          criaUsuarioDto.cre as string,
-          criaUsuarioDto.departamento,
-          criaUsuarioDto.secretaria,
-          criaUsuarioDto.telefone
-        );
-
-      default:
-        throw new Error("Role inválida");
-    }
+  // Mantém seu método de criação por role (pode ser igual ao que você já tem):
+  private criaUsuarioPorRole(criaUsuarioDto: CreateUsuarioDto): Usuario {
+    const usuario = Usuariofactory.createUsuario(criaUsuarioDto);
+    return usuario;
   }
 
-  private async salvaUsuarioPorRole(usuario: Usuario | Medico | Enfermeiro): Promise<Usuario | Medico | Enfermeiro> {
-    switch (usuario.role) {
-      case Role.PADRAO:
-      case Role.TRIAGEM:
-        return this.repositorioUsuario.save(usuario);
-      case Role.MEDICO:
-        return this.repositorioMedico.save(usuario);
-      case Role.ENFERMEIRO:
-        return this.repositorioEnfermeiro.save(usuario);
-      default:
-        throw new Error("Role inválida");
-    }
-  }
-
-  getColumnsforUser(usuario: Usuario, id: number): (keyof UsuarioResponseDto)[] {
+  getColumnsforUser(
+    usuario: Usuario,
+    id: number
+  ): (keyof UsuarioResponseDto)[] {
     const campos = [
       "id",
       "nomeCompleto",
@@ -273,12 +228,15 @@ export class UsuariosService {
       "departamento",
       "telefone",
       "cargo",
+      "foto"
     ] as (keyof UsuarioResponseDto)[];
 
     if (usuario.role !== Role.PADRAO) {
-      if (usuario.role === Role.ADMIN || usuario.role === Role.MEDICO) return campos;
-        
-      if (usuario.id !== id) return campos.filter((campo) => campo !== "cpf" && campo !== "rg");
+      if (usuario.role === Role.ADMIN || usuario.role === Role.MEDICO)
+        return campos;
+
+      if (usuario.id !== id)
+        return campos.filter((campo) => campo !== "cpf" && campo !== "rg");
 
       return campos;
     }
@@ -287,6 +245,23 @@ export class UsuariosService {
     //   throw new HttpException(`Acesso não autorizado`, HttpStatus.FORBIDDEN);
 
     return campos;
+  }
+
+  private async salvaUsuarioPorRole(usuario: Usuario): Promise<Usuario> {
+    switch (usuario.role) {
+      case Role.PADRAO:
+      case Role.RH:
+      case Role.PS:
+      case Role.ADMIN:
+      case Role.TRIAGEM:
+        return this.repositorioUsuario.save(usuario);
+      case Role.MEDICO:
+        return this.repositorioMedico.save(usuario);
+      case Role.ENFERMEIRO:
+        return this.repositorioEnfermeiro.save(usuario);
+      default:
+        throw new Error("Role inválida");
+    }
   }
 
   // async findByEmail(

@@ -24,13 +24,17 @@ export class UpdateUsuarioDto {
 
   @IsOptional()
   @IsString()
-  senha?: string; // nova senha
-
-  @IsOptional()
-  @IsString()
-  senhaAtual?: string; // senha antiga (para conferência)
+  senha?: string;
 
   @IsOptional()
   @IsString()
   foto?: string;
+  
+  @IsOptional()
+  @IsString()
+  isActive?: boolean;
+
+  @IsOptional()
+  @IsString()
+  activatedAt?: Date;
 }

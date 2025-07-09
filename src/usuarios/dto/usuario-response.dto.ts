@@ -1,4 +1,3 @@
-
 import { Exclude, Expose} from "class-transformer";
 import { Usuario } from "../entities/usuario.entity";
 import { Role } from "src/enums/role.enum";
@@ -32,7 +31,7 @@ export class UsuarioResponseDto {
   departamento: string;
   telefone: string;
   cargo: string;
-  foto?: string;
+  foto?: string | null;
   role: Role;
 
 }

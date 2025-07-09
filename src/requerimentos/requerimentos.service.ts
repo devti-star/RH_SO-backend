@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CreateRequerimentoDto } from './dto/create-requerimento.dto';
 import { UpdateRequerimentoDto } from './dto/update-requerimento.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -16,6 +16,7 @@ export class RequerimentosService {
     @InjectRepository(Requerimento)
     private readonly repositorioRequerimento: Repository<Requerimento>,
 
+    @Inject(forwardRef(() => UsuariosService))
     private readonly usuarioService: UsuariosService
   ){}
 
@@ -29,7 +30,7 @@ export class RequerimentosService {
         ...createRequerimentoDto,
         usuario: usuario});
 
-        this.repositorioRequerimento.save(novoRequerimento); 
+        const requerimentoSalvo = await this.repositorioRequerimento.save(novoRequerimento); 
       return new RequerimentoReponseDto(novoRequerimento);
   }
 
@@ -38,23 +39,33 @@ export class RequerimentosService {
       relations: {
         usuario: {
           rg: true,
-        }
+        },
+        documentos: true,
       },
     });
+
     return requerimentos;
   }
 
-  async findAllRequerimentsUser(idUsuario: number){
+
+  async findAllRequerimentsUser(idUsuario: number) {
     const requerimentos: Requerimento[] = await this.repositorioRequerimento.find({
       relations: {
         usuario: {
           rg: true,
-        }
+        },
+        documentos: true,
       },
-      where: {usuario: {id: idUsuario}}
+      where: {
+        usuario: {
+          id: idUsuario,
+        },
+      },
     });
+
     return requerimentos;
   }
+
 
   async findOne(id: number) {
     const requerimento = await this.repositorioRequerimento.findOne({
@@ -62,15 +73,17 @@ export class RequerimentosService {
       relations: {
         usuario: {
           rg: true,
-        }
+        },
+        documentos: true,
       },
     });
 
-    if(!requerimento)
+    if (!requerimento)
       throw new RequerimentoNotFoundException(id);
 
     return requerimento;
   }
+
 
   async update(id: number, updateRequerimentoDto: UpdateRequerimentoDto) {
     await this.findOne(id);
