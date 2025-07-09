@@ -8,6 +8,10 @@ export class CreateHistoricoDto {
 
   @IsNotEmpty()
   @IsInt()
+  funcionarioId: number;
+
+  @IsNotEmpty()
+  @IsInt()
   etapaAtual: Etapa;
 
   @IsNotEmpty()

@@ -6,18 +6,25 @@ import {
   OneToOne,
   JoinColumn,
   CreateDateColumn,
+  ManyToMany,
+  ManyToOne,
 } from 'typeorm';
 import { Requerimento } from '../../requerimentos/entities/requerimento.entity';
 import { Etapa } from 'src/enums/etapa.enum';
+import { Usuario } from 'src/usuarios/entities/usuario.entity';
 
 @Entity('historicos')
 export class Historico {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => Requerimento, (requerimento) => requerimento.historico)
+  @ManyToOne(() => Requerimento, (requerimento) => requerimento.historico)
   @JoinColumn()
   requerimento: Requerimento;
+
+  @ManyToOne(() => Usuario, {nullable: true})
+  @JoinColumn()
+  funcionario: Usuario;
 
   @Column({ type: 'int' })
   etapaAtual: Etapa;
