@@ -69,7 +69,7 @@ export class UsuariosController {
     };
   }
 
-  @Post()
+  @Post("/forgotpassword")
   @IsPublic()
   @HttpCode(200)
   async forgot_password(@Body() forgotPassword: ForgotPassword) {
@@ -154,12 +154,12 @@ export class UsuariosController {
     return this.usuariosService.findByEmail(email);
   }
 
-  @Patch("esqueceu-senha/:token")
+  @Patch("recoverypassword/:token")
   @IsPublic()
-  async RecoveryPassword(@Body() resetPasswordDto: ResetPasswordDto, @Param() token: string){
+  async RecoveryPassword(@Param("token") token: string, @Body() resetPasswordDto: ResetPasswordDto){
     const id: number = await this.tokenService.validateToken(token);
     await this.usuariosService.update(id, {senha: resetPasswordDto.newPassword});
-    return {message: "Senha alterado com sucesso, bigode! Marcha no progresso!"}
+    return {message: "Senha alterado com sucesso."}
   }
 
   @Patch("mudar-senha")
@@ -168,7 +168,7 @@ export class UsuariosController {
     @Body() changePasswordDto: ChangePasswordDto
   ) {
     await this.authService.changePassword(user, changePasswordDto);
-    return {message: "Senha alterada com sucesso, bigode!"};
+    return {message: "Senha alterada com sucesso!"};
   }
 
   @Patch(":id")
