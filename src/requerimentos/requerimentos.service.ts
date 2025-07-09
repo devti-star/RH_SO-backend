@@ -39,23 +39,33 @@ export class RequerimentosService {
       relations: {
         usuario: {
           rg: true,
-        }
+        },
+        documentos: true,
       },
     });
+
     return requerimentos;
   }
 
-  async findAllRequerimentsUser(idUsuario: number){
+
+  async findAllRequerimentsUser(idUsuario: number) {
     const requerimentos: Requerimento[] = await this.repositorioRequerimento.find({
       relations: {
         usuario: {
           rg: true,
-        }
+        },
+        documentos: true,
       },
-      where: {usuario: {id: idUsuario}}
+      where: {
+        usuario: {
+          id: idUsuario,
+        },
+      },
     });
+
     return requerimentos;
   }
+
 
   async findOne(id: number) {
     const requerimento = await this.repositorioRequerimento.findOne({
@@ -63,15 +73,17 @@ export class RequerimentosService {
       relations: {
         usuario: {
           rg: true,
-        }
+        },
+        documentos: true,
       },
     });
 
-    if(!requerimento)
+    if (!requerimento)
       throw new RequerimentoNotFoundException(id);
 
     return requerimento;
   }
+
 
   async update(id: number, updateRequerimentoDto: UpdateRequerimentoDto) {
     await this.findOne(id);

@@ -6,6 +6,8 @@ import {
   Body,
   ParseIntPipe,
   BadRequestException,
+  Get,
+  Param,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -32,6 +34,11 @@ export class DocumentosController {
       throw new BadRequestException('Campo arquivo é obrigatório');
     }
     return this.documentosService.create(requerimentoId, file);
+  }
+
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.documentosService.findOne(id);
   }
 
   @Post('/atestados')
