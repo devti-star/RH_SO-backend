@@ -52,6 +52,6 @@ export class Requerimento {
   documentos: Documento[];
 
   // RELACIONAMENTO 1 PARA 1 COM HISTÓRICO (historico tem a foreign key)
-  @OneToOne(() => Historico, (historico) => historico.requerimento)
+  @OneToMany(() => Historico, (historico) => historico.requerimento)
   historico: Historico;
 }
