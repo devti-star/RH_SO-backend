@@ -15,6 +15,9 @@ import {
   HttpStatus,
   BadRequestException,
   HttpCode,
+  Res,
+  ForbiddenException,
+  NotFoundException,
 } from "@nestjs/common";
 import { UsuariosService } from "./usuarios.service";
 import { CreateUsuarioDto } from "./dto/create-usuario.dto";
@@ -34,9 +37,11 @@ import { CurrentUser } from "src/shared/decorators/current-user.decorator";
 import { Usuario } from "./entities/usuario.entity";
 import { ChangePasswordDto } from "./dto/change-password-usuario.dto";
 import { AuthService } from "src/auth/auth.service";
+import * as fs from "fs";
 import { compareSync } from "bcrypt";
 import { ResetPasswordDto } from "./dto/reset-password-usuario.dto";
 import { ForgotPassword } from "./dto/forgot_password.dto";
+
 
 @UseGuards(RolesGuard)
 @Controller("usuarios")
@@ -105,13 +110,48 @@ export class UsuariosController {
   )
   async uploadFoto(
     @Param("id", ParseIntPipe) id: number,
-    @UploadedFile() foto: Express.Multer.File
+    @UploadedFile() foto: Express.Multer.File,
+    @CurrentUser() usuario: Usuario,
   ) {
+    console.log('Upload de foto:', {
+      id,
+      usuarioId: usuario.id,
+      usuarioRole: usuario.role,
+      file: foto,
+      filePath: foto?.path,
+      fileName: foto?.filename,
+    });
+
+    if (usuario.id !== id && usuario.role !== Role.ADMIN) {
+      throw new HttpException("Você só pode alterar sua própria foto.", HttpStatus.FORBIDDEN);
+    }
     if (!foto) throw new BadRequestException("Foto não enviada!");
 
     // Atualize no banco:
     await this.usuariosService.atualizarFoto(id, foto.filename);
     return { message: "Foto salva com sucesso.", foto: foto.filename };
+  }
+  
+  @Get("foto/:id")
+  async serveFoto(
+    @Param("id", ParseIntPipe) id: number,
+    @Res() res,
+    @CurrentUser() usuario: Usuario
+  ) {
+    // Só o dono ou admin pode acessar
+    if (usuario.id !== id && usuario.role !== Role.ADMIN) {
+      throw new ForbiddenException("Acesso negado");
+    }
+    // Pegue o usuário e verifique se há foto
+    const user = await this.usuariosService.findOne(id, ["foto"]);
+    if (!user || !user.foto) throw new NotFoundException();
+    const caminho = path.join(process.cwd(), "fotosUsuario", user.foto);
+
+    // Verifique se o arquivo existe
+    if (!fs.existsSync(caminho)) throw new NotFoundException();
+
+    // Envie o arquivo de forma segura
+    return res.sendFile(caminho);
   }
 
   @Roles(
