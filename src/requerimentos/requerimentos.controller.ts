@@ -45,7 +45,9 @@ export class RequerimentosController {
     return this.requerimentosService.findOne(id);
   }
 
-  findAllforId(@Param("id", ParseIntPipe) id: number) {
+
+  @Get('usuario/:id')
+  findAllforId(@Param('id', ParseIntPipe) id: number){
     return this.requerimentosService.findAllRequerimentsUser(id);
   }
 
@@ -76,6 +78,7 @@ export class RequerimentosController {
     return this.requerimentosService.update(+id, updateRequerimentoDto);
   }
 
+  
   @HttpCode(204)
   @Delete(":id")
   remove(@Param("id", ParseIntPipe) id: number) {
