@@ -87,6 +87,30 @@ export class MailService {
     );
   }
 
+  async sendConfirmateRecoveryEmail(email: string, name: string) {
+    const logoPath = join(__dirname, "templates", "assets", "logo.png");
+
+    await this.sendDynamicEmail(
+      email,
+      "Alteracão de senha",
+      "",
+      "recovery_success",
+      {
+        name,
+        currentYear: new Date().getFullYear(),
+        appName: "SESMT",
+        supportEmail: "sesmt@treslagoas.ms.gov.br",
+      },
+      [
+        {
+          filename: "logoBranca.png",
+          path: logoPath,
+          cid: "logo",
+        },
+      ]
+    );
+  }
+
 
   async sendActivatedEmail(email: string, name: string, link: string | undefined) {
     const logoPath = join(__dirname, "templates", "assets", "logo.png");

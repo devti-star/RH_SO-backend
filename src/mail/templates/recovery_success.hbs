@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Recuperação de Senha</title>
+  <title>Confirmação de Alteração de Senha</title>
   <style>
-    /* Mantido o mesmo estilo original */
     body {
       margin: 0;
       padding: 0;
@@ -23,7 +22,7 @@
       box-shadow: 0 0 20px rgba(0,0,0,0.05);
     }
     .header {
-      background-color: #dc2626; /* Alterado para vermelho (tom de alerta) */
+      background-color: #10b981; /* Verde - confirmação */
       color: #ffffff;
       padding: 30px 20px;
       text-align: center;
@@ -47,20 +46,10 @@
       margin-bottom: 25px;
       font-size: 16px;
     }
-    .button {
-      display: inline-block;
-      background-color: #dc2626; /* Alterado para vermelho */
-      color: #ffffff !important;
-      text-decoration: none;
-      padding: 14px 35px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 16px;
-      margin: 25px 0;
-      transition: background-color 0.3s;
-    }
-    .button:hover {
-      background-color: #b91c1c; /* Tom mais escuro de vermelho */
+    .icon {
+      font-size: 60px;
+      margin: 20px 0;
+      color: #10b981;
     }
     .text-center {
       text-align: center;
@@ -72,6 +61,12 @@
     .logo {
       max-width: 180px;
       margin-bottom: 20px;
+    }
+    .security-alert {
+      background-color: #fef2f2;
+      border-left: 4px solid #ef4444;
+      padding: 15px;
+      margin: 25px 0;
     }
     @media screen and (max-width: 600px) {
       .container {
@@ -87,12 +82,6 @@
       h1 {
         font-size: 24px;
       }
-      .button {
-        display: block;
-        margin: 25px auto;
-        text-align: center;
-        padding: 12px 25px;
-      }
     }
   </style>
 </head>
@@ -100,24 +89,27 @@
   <div class="container">
     <div class="header">
       <img src="cid:logo" alt="Logo" class="logo">
-      <h1>Redefinição de Senha</h1> <!-- Título alterado -->
+      <h1>Senha Alterada com Sucesso</h1>
     </div>
     
     <div class="content">
       <p>Olá <strong>{{name}}</strong>,</p>
       
-      <!-- Mensagem principal alterada -->
-      <p>Recebemos uma solicitação para redefinir a senha da sua conta. Para criar uma nova senha, clique no botão abaixo:</p>
-    
+      <p>Sua senha foi alterada com sucesso em <strong>{{appName}}</strong>.</p>
+      
       <div class="text-center">
-        <a href="{{link}}" class="button">Redefinir Minha Senha</a> <!-- Texto do botão alterado -->
+        <div class="icon">✓</div>
+        <p>Você já pode acessar sua conta com a nova senha.</p>
       </div>
 
-      <!-- Mensagem de validade mantida com ajuste -->
-      <p class="small">Este link de redefinição é válido por 90 minutos. Caso expire, você pode solicitar um novo na página de login.</p>
-      
-      <!-- Adicionada instrução de segurança -->
-      <p><strong>Segurança:</strong> Se você não solicitou esta alteração, por favor, ignore este e-mail e verifique as configurações de segurança da sua conta.</p>
+      <div class="security-alert">
+        <p><strong>Verifique sua segurança:</strong></p>
+        <p>Se você não realizou esta alteração:</p>
+        <ul>
+          <li>Entre em contato imediatamente com nosso suporte</li>
+          <li>Verifique suas configurações de segurança</li>
+        </ul>
+      </div>
       
       <p>Atenciosamente,<br><strong>SESMT</strong></p>
     </div>
