@@ -58,7 +58,7 @@ export class RequerimentosService {
       },
       where: {
         usuario: {
-          id: idUsuario,
+          idUsuario: idUsuario,
         },
       },
     });

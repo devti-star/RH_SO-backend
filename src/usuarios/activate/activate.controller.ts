@@ -39,7 +39,7 @@ export class ActivationController {
     if (!usuario) {
       return;
     }
-    await this.activate_service.activateUser(usuario?.id);
+    await this.activate_service.activateUser(usuario?.idUsuario);
     if (usuario)
       this.mailService.sendActivatedEmail(
         usuario.email,

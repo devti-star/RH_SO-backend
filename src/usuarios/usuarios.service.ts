@@ -44,14 +44,14 @@ export class UsuariosService {
 
   async activateByToken(id: number): Promise<Usuario> {
     const usuario = await this.repositorioUsuario.findOne({
-      where: { id: id },
+      where: { idUsuario: id },
     });
 
     if (!usuario) {
       throw new NotFoundException("Token de ativação inválido");
     }
 
-    await this.activateUser(usuario.id);
+    await this.activateUser(usuario.idUsuario);
     return usuario;
   }
 
@@ -66,9 +66,9 @@ export class UsuariosService {
     }
   }
 
-  async atualizarFoto(id: number, filename: string) {
+  async atualizarFoto(idUsuario: number, filename: string) {
     const usuario = await this.repositorioUsuario.findOne({
-      where: { id },
+      where: { idUsuario },
       relations: { rg: true }, // carrega o RG vinculado!
     });
     if (!usuario) throw new NotFoundException("Usuário não encontrado!");
@@ -102,17 +102,17 @@ export class UsuariosService {
   }
 
   async findOne(
-    id: number,
+    idUsuario: number,
     campos: (keyof UsuarioResponseDto)[] = []
   ): Promise<UsuarioResponseDto> {
     const usuario = await this.repositorioUsuario.findOne({
-      where: { id },
+      where: { idUsuario },
       select: campos.length > 0 ? campos : undefined,
       relations: campos.includes("rg") ? { rg: true } : { rg: false },
     });
 
     if (!usuario) {
-      throw new UsuarioNotFoundException(id);
+      throw new UsuarioNotFoundException(idUsuario);
     }
     const usuarioResponse: UsuarioResponseDto = new UsuarioResponseDto(usuario);
     return usuarioResponse;
@@ -152,14 +152,14 @@ export class UsuariosService {
   // ...restante do código
 
   async update(
-    id: number,
+    idUsuario: number,
     updateUsuarioDto: UpdateUsuarioDto
   ): Promise<UsuarioResponseDto> {
     const usuario = await this.repositorioUsuario.findOne({
-      where: { id },
+      where: { idUsuario },
       relations: { rg: true },
       select: [
-        "id",
+        "idUsuario",
         "nomeCompleto",
         "departamento",
         "secretaria",
@@ -175,7 +175,7 @@ export class UsuariosService {
     });
 
     if (!usuario) {
-      throw new UsuarioNotFoundException(id);
+      throw new UsuarioNotFoundException(idUsuario);
     }
 
     // Atualiza apenas campos permitidos
@@ -237,13 +237,13 @@ export class UsuariosService {
       if (usuario.role === Role.ADMIN || usuario.role === Role.MEDICO)
         return campos;
 
-      if (usuario.id !== id)
+      if (usuario.idUsuario !== id)
         return campos.filter((campo) => campo !== "cpf" && campo !== "rg");
 
       return campos;
     }
 
-    if (usuario.id !== id)
+    if (usuario.idUsuario !== id)
       throw new HttpException(`Acesso não autorizado`, HttpStatus.FORBIDDEN);
 
     return campos;
@@ -265,47 +265,4 @@ export class UsuariosService {
         throw new Error("Role inválida");
     }
   }
-
-  // async findByEmail(
-  //   email: string,
-  //   includePassword: boolean = false,
-  //   role: Role
-  // ): Promise<Usuario | Enfermeiro | Medico | null> {
-  //   let usuario: Usuario | Enfermeiro | Medico | null = null;
-
-  //   switch (role) {
-  //     case Role.PADRAO:
-  //       usuario = await this.repositorioUsuario
-  //         .createQueryBuilder("usuario")
-  //         .addSelect(includePassword ? "usuario.senha" : "")
-  //         .where("usuario.email = :email", { email })
-  //         .getOne();
-  //       break;
-  //     case Role.MEDICO:
-  //       usuario = await this.repositorioMedico
-  //         .createQueryBuilder("medico")
-  //         .addSelect(includePassword ? "medico.senha" : "")
-  //         .where("medico.email = :email", { email })
-  //         .getOne();
-  //       break;
-  //     case Role.ENFERMEIRO:
-  //       usuario = await this.repositorioEnfermeiro
-  //         .createQueryBuilder("enfermeiro")
-  //         .addSelect(includePassword ? "enfermeiro.senha" : "")
-  //         .where("enfermeiro.email = :email", { email })
-  //         .getOne();
-  //       break;
-  //   }
-
-  //   if (!usuario) {
-  //     return null;
-  //   }
-
-  //   if (includePassword) {
-  //     return usuario;
-  //   } else {
-  //     const { senha, ...resultado } = usuario;
-  //     return resultado as Usuario;
-  //   }
-  // }
 }

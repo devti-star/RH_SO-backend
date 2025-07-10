@@ -59,7 +59,7 @@ export class UsuariosController {
   @HttpCode(201)
   async create(@Body() createUsuarioDto: CreateUsuarioDto) {
     const usuario = await this.usuariosService.criar(createUsuarioDto);
-    const token = await this.tokenService.generateToken(usuario.id);
+    const token = await this.tokenService.generateToken(usuario.idUsuario);
     const link = this.configService.get<string>("ACTIVATE_LINK") + "/" + token;
 
     await this.mailService.sendActivationEmail(
@@ -79,7 +79,7 @@ export class UsuariosController {
   @HttpCode(200)
   async forgot_password(@Body() forgotPassword: ForgotPassword) {
     const usuario = await this.usuariosService.findByEmail(forgotPassword.email);
-    const token = await this.tokenService.generateToken(usuario.id);
+    const token = await this.tokenService.generateToken(usuario.idUsuario);
     const link = this.configService.get<string>("FORGOT_PASSWORD") + "/" + token;
 
     await this.mailService.sendRecoveryEmail(
@@ -115,14 +115,14 @@ export class UsuariosController {
   ) {
     console.log('Upload de foto:', {
       id,
-      usuarioId: usuario.id,
+      usuarioId: usuario.idUsuario,
       usuarioRole: usuario.role,
       file: foto,
       filePath: foto?.path,
       fileName: foto?.filename,
     });
 
-    if (usuario.id !== id && usuario.role !== Role.ADMIN) {
+    if (usuario.idUsuario !== id && usuario.role !== Role.ADMIN) {
       throw new HttpException("Você só pode alterar sua própria foto.", HttpStatus.FORBIDDEN);
     }
     if (!foto) throw new BadRequestException("Foto não enviada!");
@@ -139,7 +139,7 @@ export class UsuariosController {
     @CurrentUser() usuario: Usuario
   ) {
     // Só o dono ou admin pode acessar
-    if (usuario.id !== id && usuario.role !== Role.ADMIN) {
+    if (usuario.idUsuario !== id && usuario.role !== Role.ADMIN) {
       throw new ForbiddenException("Acesso negado");
     }
     // Pegue o usuário e verifique se há foto

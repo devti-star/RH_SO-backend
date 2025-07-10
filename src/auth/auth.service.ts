@@ -18,7 +18,7 @@ export class AuthService {
 
   async login(usuario: Usuario): Promise<UserToken> {
     const payload: UserPayload = {
-      sub: usuario.id,
+      sub: usuario.idUsuario,
       email: usuario.email,
       nome: usuario.nomeCompleto,
       role: usuario.role,
@@ -48,7 +48,7 @@ export class AuthService {
   async changePassword(user: Usuario, changePasswordDto: ChangePasswordDto) {
     const usuario = await this.usuarioService.findByEmailcomSenha(user.email); //Discutível a real necessidade de buscar pelo usuário correspondente ao email contido no payload, uma vez que este já possui o id
 
-    if (user.id !== usuario.id)
+    if (user.idUsuario !== usuario.idUsuario)
       throw new UnauthorizedException("o e-mail informado não corresponde ao do usuário logado");
 
     const isPasswordValid = usuario?.senha
@@ -56,7 +56,7 @@ export class AuthService {
       : false;
 
     if (isPasswordValid) {
-      await this.usuarioService.update(usuario.id, {
+      await this.usuarioService.update(usuario.idUsuario, {
         senha: changePasswordDto.newPassword,
       });
     } else {

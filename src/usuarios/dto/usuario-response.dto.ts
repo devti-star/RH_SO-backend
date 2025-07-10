@@ -7,7 +7,7 @@ import { RGResponseDto } from "src/rg/dto/rg-reponse.dto";
 
 export class UsuarioResponseDto {
   constructor(usuario: Usuario){
-      this.id = usuario.id,
+      this.idUsuario = usuario.idUsuario,
       this.nomeCompleto = usuario.nomeCompleto,
       this.cpf = usuario.cpf,
       this.rg = usuario.rg,
@@ -21,7 +21,7 @@ export class UsuarioResponseDto {
       this.role = usuario.role
     }
   
-  id: number;
+  idUsuario: number;
   nomeCompleto: string;
   cpf: string;
   rg: RGResponseDto;

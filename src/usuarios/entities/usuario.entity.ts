@@ -45,7 +45,7 @@ export class Usuario {
   }
 
   @PrimaryGeneratedColumn()
-  id: number;
+  idUsuario: number;
 
   @Column({ length: 128 })
   nomeCompleto: string;
