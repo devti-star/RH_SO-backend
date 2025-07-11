@@ -42,6 +42,7 @@ import { compareSync } from "bcrypt";
 import { ResetPasswordDto } from "./dto/reset-password-usuario.dto";
 import { ForgotPassword } from "./dto/forgot_password.dto";
 
+import { DefaultIdGuard } from "src/auth/guards/check-id-default-user.guard";
 
 @UseGuards(RolesGuard)
 @Controller("usuarios")

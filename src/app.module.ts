@@ -17,6 +17,7 @@ import { ActivateModule } from "./usuarios/activate/activate.module";
 import { SharedModule } from "./shared/services/shared.module";
 import { ActivateService } from "./usuarios/activate/activate.service";
 import { DocumentosModule } from './documentos/documentos.module';
+import { DefaultIdGuard } from "./auth/guards/check-id-default-user.guard";
 
 
 
@@ -48,10 +49,14 @@ import { DocumentosModule } from './documentos/documentos.module';
     SharedModule, // Módulo compartilhado
     ActivateModule, // Módulo do controller
     DocumentosModule,
-    ],
-  controllers: [AppController, ActivationController, ActivationController],
-  providers: [AppService, { provide: APP_GUARD, useClass: JwtAuthGuard }],
+  ],
 
+  controllers: [AppController, ActivationController],
+  providers: [
+    AppService,
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: DefaultIdGuard },
+  ],
 })
 export class AppModule {}
 
