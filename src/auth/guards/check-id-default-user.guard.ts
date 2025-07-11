@@ -25,23 +25,25 @@ export class DefaultIdGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    const id_petitioner = Number(request.params.id);
+    const id_petitioner_body = Number(request.body.idUsuario);
+    const id_petitioner_params = Number(request.params.idUsuario);
     const user = request.user;
-    
+
     // A rota é pública, não é necessário verificar roles
     if (isPublic) return true;
 
     // Não há usuário no sistema. Não é nem para chegar aqui, mas vai que, né?
     if (!user) throw new UsuarioUnauthenticate();
 
-    // A rota não possui id como parâmetro, logo a verificação não se faz necessária
-    if (!id_petitioner) return true;
+    // A rota não possui id nem como parâmetro nem no body da requisição, logo, a verificação não se faz necessária
+    if (!id_petitioner_body && !id_petitioner_params) return true; // CHECK
 
     // O usuário não é do tipo padrão, logo, pode acessar informações que pertencem a outros
     if (user.role !== Role.PADRAO) return true;
 
     // O usuário é padrão e tentou acessar dados que não lhe pertencem. Safado, achou que podia burlar o front
-    if (user.id !== id_petitioner) throw new UnauthorizedException();
+    if (user.id !== id_petitioner_body && user.id !== id_petitioner_params)
+      throw new UnauthorizedException();
 
     return true;
   }
