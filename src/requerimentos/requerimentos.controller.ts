@@ -10,6 +10,7 @@ import {
   ParseIntPipe,
   UseGuards,
   Inject,
+  UseInterceptors,
 } from "@nestjs/common";
 import { RequerimentosService } from "./requerimentos.service";
 import { UpdateRequerimentoDto } from "./dto/update-requerimento.dto";
@@ -21,6 +22,7 @@ import { CurrentUser } from "src/shared/decorators/current-user.decorator";
 import { Usuario } from "src/usuarios/entities/usuario.entity";
 import { HistoricosService } from "src/historicos/historicos.service";
 import { ChangeStageRequerimentoDto } from "./dto/change-stage-requerimento.dto";
+import { OutputAccessInterceptor } from "src/auth/interceptors/output-access.interceptor";
 
 @UseGuards(RolesGuard)
 @Controller("requerimentos")
@@ -40,6 +42,7 @@ export class RequerimentosController {
     return this.requerimentosService.findAll();
   }
 
+  @UseInterceptors(OutputAccessInterceptor)
   @Get(":id")
   findOne(@Param("id", ParseIntPipe) id: number) {
     return this.requerimentosService.findOne(id);
