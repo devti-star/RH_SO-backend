@@ -53,5 +53,5 @@ export class Requerimento {
 
   // RELACIONAMENTO 1 PARA 1 COM HISTÓRICO (historico tem a foreign key)
   @OneToMany(() => Historico, (historico) => historico.requerimento)
-  historico: Historico;
+  historico: Historico[];
 }

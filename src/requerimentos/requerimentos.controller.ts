@@ -26,7 +26,7 @@ export class RequerimentosController {
 
 
   @Get('usuario/:id')
-@Roles(Role.ADMIN, Role.ENFERMEIRO, Role.MEDICO, Role.PS, Role.RH, Role.TRIAGEM, Role.PADRAO)
+  @Roles(Role.ADMIN, Role.ENFERMEIRO, Role.MEDICO, Role.PS, Role.RH, Role.TRIAGEM, Role.PADRAO)
   findAllforId(@Param('id', ParseIntPipe) id: number){
     return this.requerimentosService.findAllRequerimentsUser(id);
   }
@@ -39,9 +39,13 @@ export class RequerimentosController {
 
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateRequerimentoDto: UpdateRequerimentoDto) {
-    return this.requerimentosService.update(+id, updateRequerimentoDto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateRequerimentoDto: UpdateRequerimentoDto
+  ) {
+    return this.requerimentosService.update(id, updateRequerimentoDto);
   }
+
 
   
   @HttpCode(204)
