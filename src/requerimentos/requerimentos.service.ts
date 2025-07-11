@@ -7,16 +7,23 @@ import { Repository } from "typeorm";
 import { UsuariosService } from "src/usuarios/usuarios.service";
 import { UsuarioNotFoundException } from "src/shared/exceptions/usuario-not-found.exception";
 import { RequerimentoReponseDto } from "./dto/response-requerimento.dto";
-import { Documento } from "src/documentos/entities/documento.entity";
+import { Atestado, Documento } from "src/documentos/entities/documento.entity";
 import { RequerimentoNotFoundException } from "src/shared/exceptions/requerimento-not-found.exception";
 import { ChangeStageRequerimentoDto } from "./dto/change-stage-requerimento.dto";
 import { HistoricosService } from "src/historicos/historicos.service";
+
 
 @Injectable()
 export class RequerimentosService {
   constructor(
     @InjectRepository(Requerimento)
     private readonly repositorioRequerimento: Repository<Requerimento>,
+
+    @InjectRepository(Atestado)
+    private readonly atestadoRepository: Repository<Atestado>,
+
+    @InjectRepository(Documento)
+    private readonly documentoRepository: Repository<Documento>,
 
     @Inject(forwardRef(() => UsuariosService))
     private readonly usuarioService: UsuariosService,
@@ -40,21 +47,21 @@ export class RequerimentosService {
 
     const requerimentoSalvo =
       await this.repositorioRequerimento.save(novoRequerimento);
+
     return new RequerimentoReponseDto(novoRequerimento);
   }
 
   async findAll() {
-    const requerimentos: Requerimento[] =
-      await this.repositorioRequerimento.find({
-        relations: {
-          usuario: {
-            rg: true,
-          },
-          documentos: true,
-        },
-      });
 
-    return requerimentos;
+    const requerimentos = await this.repositorioRequerimento.find({
+      relations: ['usuario', 'documentos', 'historico'],
+    });
+
+    // Para cada requerimento, inclua só o último histórico no retorno
+    return requerimentos.map(req => ({
+      ...req,
+      historico: req.historico?.sort((a, b) => new Date(b.dataRegistro).getTime() - new Date(a.dataRegistro).getTime())[0]
+    }));
   }
 
   async findAllRequerimentsUser(idUsuario: number) {
@@ -93,10 +100,55 @@ export class RequerimentosService {
   }
 
   async update(id: number, updateRequerimentoDto: UpdateRequerimentoDto) {
-    await this.findOne(id);
-    await this.repositorioRequerimento.update(id, updateRequerimentoDto);
-    return this.findOne(id);
+    // Atualiza documentos (Atestados), se vieram no DTO
+    if (updateRequerimentoDto.documentos) {
+    for (const doc of updateRequerimentoDto.documentos) {
+      const updateDoc: any = {};
+      if (doc.justificativa !== undefined) updateDoc.justificativa = doc.justificativa;
+      if (doc.checklist !== undefined) updateDoc.checklist = doc.checklist;
+      if (doc.concluido !== undefined) updateDoc.concluido = doc.concluido;   // <--- ESSA LINHA É FUNDAMENTAL!
+
+      if (Object.keys(updateDoc).length === 0) continue;
+
+      await this.documentoRepository.createQueryBuilder()
+        .update()
+        .set(updateDoc)
+        .where("id = :id", { id: doc.id })
+        .execute();
+    }
+    delete updateRequerimentoDto.documentos;
   }
+
+    // Filtra apenas os campos realmente alterados em relação ao banco
+    const reqAtual = await this.repositorioRequerimento.findOneBy({ id });
+    if (!reqAtual) {
+      throw new Error(`Requerimento com id ${id} não encontrado para update.`);
+    }
+
+    const camposAlterados: any = {};
+    for (const [chave, valor] of Object.entries(updateRequerimentoDto)) {
+      if (
+        valor !== undefined &&
+        valor !== null &&
+        reqAtual[chave] !== valor
+      ) {
+        camposAlterados[chave] = valor;
+      }
+    }
+
+    if (Object.keys(camposAlterados).length > 0) {
+      await this.repositorioRequerimento.update(id, camposAlterados);
+    }
+
+    // Retorna objeto atualizado com relations
+    return this.repositorioRequerimento.findOne({
+      where: { id },
+      relations: ['usuario', 'documentos', 'historico'],
+    });
+  }
+ 
+
+
 
   async remove(id: number) {
     await this.findOne(id);

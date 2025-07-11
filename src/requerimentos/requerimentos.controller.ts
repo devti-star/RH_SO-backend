@@ -78,6 +78,7 @@ export class RequerimentosController {
     return this.requerimentosService.update(+id, updateRequerimentoDto);
   }
 
+
   
   @HttpCode(204)
   @Delete(":id")
