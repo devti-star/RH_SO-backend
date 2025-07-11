@@ -25,7 +25,7 @@ export class DefaultIdGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    const id_petitioner = Number(request.params.id);
+    const id_petitioner = Number(request.body.idUsuario);
     const user = request.user;
     
     // A rota é pública, não é necessário verificar roles
