@@ -16,7 +16,8 @@ export class HistoricosService {
     private readonly repositorioHistorico: Repository<Historico>,
     @Inject(forwardRef(() => UsuariosService))
     private readonly usuarioService: UsuariosService,
-    @Inject() private readonly requerimentosService: RequerimentosService
+    @Inject(forwardRef(() => RequerimentosService))
+    private readonly requerimentosService: RequerimentosService
   ) {}
 
   async create(createHistoricoDto: CreateHistoricoDto) {
@@ -49,7 +50,7 @@ export class HistoricosService {
   async findLastRecord(idRequerimento: number) {
     const lastRecord = await this.repositorioHistorico.findOne({
       where: { requerimento: { id: idRequerimento } },
-      order: {dataRegistro: "DESC"}
+      order: { dataRegistro: "DESC" },
     });
 
     if (!lastRecord) throw new HistoricoNotFoundException(idRequerimento);

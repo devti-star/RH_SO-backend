@@ -231,8 +231,6 @@ export class UsuariosService {
       "foto"
     ] as (keyof UsuarioResponseDto)[];
 
-    // console.log("Usuario.id = ", usuario.id, "\nreq.id = ", id);
-
     if (usuario.role !== Role.PADRAO) {
       if (usuario.role === Role.ADMIN || usuario.role === Role.MEDICO)
         return campos;
@@ -243,8 +241,8 @@ export class UsuariosService {
       return campos;
     }
 
-    if (usuario.id !== id)
-      throw new HttpException(`Acesso não autorizado`, HttpStatus.FORBIDDEN);
+    // if (usuario.id !== id)
+    //   throw new HttpException(`Acesso não autorizado`, HttpStatus.FORBIDDEN);
 
     return campos;
   }

@@ -1,14 +1,17 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { CreateRequerimentoDto } from './dto/create-requerimento.dto';
-import { UpdateRequerimentoDto } from './dto/update-requerimento.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Requerimento } from './entities/requerimento.entity';
-import { Repository } from 'typeorm';
-import { UsuariosService } from 'src/usuarios/usuarios.service';
-import { UsuarioNotFoundException } from 'src/shared/exceptions/usuario-not-found.exception';
-import { RequerimentoReponseDto } from './dto/response-requerimento.dto';
-import { Atestado, Documento } from 'src/documentos/entities/documento.entity';
-import { RequerimentoNotFoundException } from 'src/shared/exceptions/requerimento-not-found.exception';
+import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { CreateRequerimentoDto } from "./dto/create-requerimento.dto";
+import { UpdateRequerimentoDto } from "./dto/update-requerimento.dto";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Requerimento } from "./entities/requerimento.entity";
+import { Repository } from "typeorm";
+import { UsuariosService } from "src/usuarios/usuarios.service";
+import { UsuarioNotFoundException } from "src/shared/exceptions/usuario-not-found.exception";
+import { RequerimentoReponseDto } from "./dto/response-requerimento.dto";
+import { Atestado, Documento } from "src/documentos/entities/documento.entity";
+import { RequerimentoNotFoundException } from "src/shared/exceptions/requerimento-not-found.exception";
+import { ChangeStageRequerimentoDto } from "./dto/change-stage-requerimento.dto";
+import { HistoricosService } from "src/historicos/historicos.service";
+
 
 @Injectable()
 export class RequerimentosService {
@@ -24,23 +27,32 @@ export class RequerimentosService {
 
     @Inject(forwardRef(() => UsuariosService))
     private readonly usuarioService: UsuariosService,
+
+    @Inject(forwardRef(() => HistoricosService))
+    private readonly historicoService: HistoricosService
   ) {}
 
   async create(createRequerimentoDto: CreateRequerimentoDto) {
-    const usuario = await this.usuarioService.findOne(createRequerimentoDto.usuarioId);
+    const usuario = await this.usuarioService.findOne(
+      createRequerimentoDto.usuarioId
+    );
+
     if (!usuario)
       throw new UsuarioNotFoundException(createRequerimentoDto.usuarioId);
 
     const novoRequerimento = this.repositorioRequerimento.create({
       ...createRequerimentoDto,
-      usuario: usuario
+      usuario: usuario,
     });
 
-    const requerimentoSalvo = await this.repositorioRequerimento.save(novoRequerimento);
+    const requerimentoSalvo =
+      await this.repositorioRequerimento.save(novoRequerimento);
+
     return new RequerimentoReponseDto(novoRequerimento);
   }
 
   async findAll() {
+
     const requerimentos = await this.repositorioRequerimento.find({
       relations: ['usuario', 'documentos', 'historico'],
     });
@@ -53,19 +65,20 @@ export class RequerimentosService {
   }
 
   async findAllRequerimentsUser(idUsuario: number) {
-    const requerimentos: Requerimento[] = await this.repositorioRequerimento.find({
-      relations: {
-        usuario: {
-          rg: true,
+    const requerimentos: Requerimento[] =
+      await this.repositorioRequerimento.find({
+        relations: {
+          usuario: {
+            rg: true,
+          },
+          documentos: true,
         },
-        documentos: true,
-      },
-      where: {
-        usuario: {
-          id: idUsuario,
+        where: {
+          usuario: {
+            id: idUsuario,
+          },
         },
-      },
-    });
+      });
 
     return requerimentos;
   }
@@ -81,16 +94,11 @@ export class RequerimentosService {
       },
     });
 
-    if (!requerimento)
-      throw new RequerimentoNotFoundException(id);
+    if (!requerimento) throw new RequerimentoNotFoundException(id);
 
     return requerimento;
   }
 
-  /**
-   * Update robusto para documentos herdados (Atestado)
-   * Faz update pelo repositório pai (Documento) para garantir update do campo checklist
-   */
   async update(id: number, updateRequerimentoDto: UpdateRequerimentoDto) {
     // Atualiza documentos (Atestados), se vieram no DTO
     if (updateRequerimentoDto.documentos) {
@@ -151,5 +159,22 @@ export class RequerimentosService {
     }
 
     return true;
+  }
+
+  async changeStage(
+    requerimentoId: number,
+    funcionarioId: number,
+    changeStageRequerimentoDto: ChangeStageRequerimentoDto
+  ) {
+    await this.historicoService.create({
+      requerimentoId,
+      funcionarioId,
+      etapaAtual: changeStageRequerimentoDto.etapaAtual,
+      etapaDestino: changeStageRequerimentoDto.etapaDestino,
+      observacao: changeStageRequerimentoDto.observacao,
+    });
+    return this.update(requerimentoId, {
+      etapa: changeStageRequerimentoDto.etapaDestino,
+    });
   }
 }
