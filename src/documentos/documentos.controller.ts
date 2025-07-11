@@ -45,4 +45,17 @@ export class DocumentosController {
   create(@Body() createAtestadoDto: CreateAtestadoDto){
     return this.documentosService.createAtestado(createAtestadoDto);
   }
+
+  // Faz a substituição do documento caso ja exista
+  @Post('substituir/:requerimentoId')
+  @UseInterceptors(FileInterceptor('arquivo', {
+    storage: memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 },
+  }))
+  async substituirArquivo(
+    @UploadedFile() file: Express.Multer.File,
+    @Param('requerimentoId', ParseIntPipe) requerimentoId: number
+  ): Promise<Documento> {
+    return this.documentosService.substituirArquivoDocumento(requerimentoId, file);
+  }
 }

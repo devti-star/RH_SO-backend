@@ -36,7 +36,7 @@ export class Atestado extends Documento {
   concluido: boolean; // Indica se o atestado foi concluído
 
   @Column('jsonb', { nullable: true })
-  checklis: Checklist[];
+  checklist: Checklist[];
 
   @Column({ length: 255, nullable: true })
   justificativa: string; // Justificativa para o atestado, se necessário

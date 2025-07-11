@@ -197,10 +197,15 @@ export class UsuariosController {
 
   @Patch("recoverypassword/:token")
   @IsPublic()
-  async RecoveryPassword(@Param("token") token: string, @Body() resetPasswordDto: ResetPasswordDto){
+  async RecoveryPassword(@Param("token") token: string, @Body() resetPasswordDto: ResetPasswordDto) {
     const id: number = await this.tokenService.validateToken(token);
-    await this.usuariosService.update(id, {senha: resetPasswordDto.newPassword});
-    return {message: "Senha alterado com sucesso."}
+    const usuario = await this.usuariosService.findOne(id);
+    await this.usuariosService.update(id, { senha: resetPasswordDto.newPassword });
+    await this.mailService.sendConfirmateRecoveryEmail(
+      usuario.email,
+      usuario.nomeCompleto,
+    );
+    return { message: "Senha alterado com sucesso." }
   }
 
   @Patch("mudar-senha")
@@ -209,7 +214,7 @@ export class UsuariosController {
     @Body() changePasswordDto: ChangePasswordDto
   ) {
     await this.authService.changePassword(user, changePasswordDto);
-    return {message: "Senha alterada com sucesso!"};
+    return { message: "Senha alterada com sucesso!" };
   }
 
   @Patch(":id")

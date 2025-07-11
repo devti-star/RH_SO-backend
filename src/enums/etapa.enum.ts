@@ -1,6 +1,6 @@
 export enum Etapa {
   TRIAGEM = 0,
-  ENFERMEIRO = 1,
-  MEDICO = 2,
+  MEDICO = 1,
+  ENFERMEIRO = 2,
   AJUSTE = 3,
 }
