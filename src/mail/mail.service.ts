@@ -2,10 +2,18 @@ import { Injectable } from "@nestjs/common";
 import { MailerService } from "@nestjs-modules/mailer";
 import { join } from "path";
 import * as fs from "fs";
+import { setUncaughtExceptionCaptureCallback } from "process";
+import { Etapa } from "src/enums/etapa.enum";
+import { ConfigService } from "@nestjs/config";
+import { UsuarioResponseDto } from "src/usuarios/dto/usuario-response.dto";
+import { Status } from "src/enums/status.enum";
 
 @Injectable()
 export class MailService {
-  constructor(private readonly mailerService: MailerService) { }
+  constructor(
+    private readonly mailerService: MailerService,
+    private readonly configService: ConfigService,
+  ) { }
 
   async sendDynamicEmail(
     to: string,
@@ -124,6 +132,41 @@ export class MailService {
         link,
         currentYear: new Date().getFullYear(),
         appName: "SESMT",
+        supportEmail: "sesmt@treslagoas.ms.gov.br",
+      },
+      [
+        {
+          filename: "logoBranca.png",
+          path: logoPath,
+          cid: "logo",
+        },
+      ]
+    );
+  }
+
+  async sendChangeStateEmail(usuario: UsuarioResponseDto, etapaAnterior: Etapa, etapaAtual: Etapa, status: Status) {
+    const etapa: string[] = [
+      "TRIAGEM",
+      "MÉDICO",
+      "ENFERMEIRO",
+      "AJUSTE"
+    ]
+    
+    const logoPath = join(__dirname, "templates", "assets", "logo.png");
+    console.log("Enviando email de mudança de etapa para:", usuario.email);
+    await this.sendDynamicEmail(
+      usuario.email,
+      "Alteração de Etapa",
+      "",
+      "change_stage",
+      {
+        name: usuario.nomeCompleto,
+        etapaAnterior: etapa[etapaAnterior],
+        etapaAtual: etapa[etapaAtual],
+        status: status,
+        link: this.configService.get<string>("URL_FRONT_APPLICATION"),
+        currentYear: new Date().getFullYear(),
+        appName: "SESMT", 
         supportEmail: "sesmt@treslagoas.ms.gov.br",
       },
       [

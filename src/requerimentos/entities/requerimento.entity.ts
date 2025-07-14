@@ -44,7 +44,7 @@ export class Requerimento {
   criadoEm: Date;
 
   // RELACIONAMENTO COM USUÁRIO (N requs para 1 usuario)
-  @ManyToOne(() => Usuario, (usuario) => usuario.requerimentos)
+  @ManyToOne(() => Usuario, (usuario) => usuario.requerimentos, { eager: true })
   usuario: Usuario;
 
   // RELACIONAMENTO COM DOCUMENTOS (1 requerimento para N documentos)

@@ -15,6 +15,8 @@ import { RequerimentoNotFoundException } from "src/shared/exceptions/requeriment
 import { ChangeStageRequerimentoDto } from "./dto/change-stage-requerimento.dto";
 import { HistoricosService } from "src/historicos/historicos.service";
 import { Usuario } from "src/usuarios/entities/usuario.entity";
+import { MailService } from "src/mail/mail.service";
+
 
 @Injectable()
 export class RequerimentosService {
@@ -32,7 +34,10 @@ export class RequerimentosService {
     private readonly usuarioService: UsuariosService,
 
     @Inject(forwardRef(() => HistoricosService))
-    private readonly historicoService: HistoricosService
+    private readonly historicoService: HistoricosService,
+
+    @Inject (forwardRef(() => MailService))
+    private readonly mailService: MailService,
   ) {}
 
   async create(createRequerimentoDto: CreateRequerimentoDto) {
@@ -145,6 +150,23 @@ export class RequerimentosService {
     const reqAtual = await this.repositorioRequerimento.findOneBy({ id });
     if (!reqAtual) {
       throw new Error(`Requerimento com id ${id} não encontrado para update.`);
+    }
+
+    console.log("requerimento atual", reqAtual);
+    const usuarioAtual = await this.usuarioService.findOne(reqAtual.usuario.id);
+    if (!usuarioAtual) {
+      throw new UsuarioNotFoundException(reqAtual.usuario.id);
+    }
+
+    console.log("Etapa atual ", reqAtual.etapa);
+    console.log("Nova etapa ", updateRequerimentoDto.etapa);
+    if ( updateRequerimentoDto.etapa && updateRequerimentoDto.etapa !== reqAtual.etapa) {
+      await this.mailService.sendChangeStateEmail(
+        usuarioAtual,
+        reqAtual.etapa,
+        updateRequerimentoDto.etapa,
+        reqAtual.status
+      )
     }
 
     const camposAlterados: any = {};
