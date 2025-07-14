@@ -7,6 +7,7 @@ import { Historico } from "src/historicos/entities/historico.entity";
 import { Requerimento } from "./entities/requerimento.entity";
 import { UsuariosModule } from "src/usuarios/usuarios.module";
 import { HistoricosModule } from "src/historicos/historicos.module";
+import { MailModule } from "src/mail/mail.module";
 
 @Module({
   controllers: [RequerimentosController],
@@ -16,6 +17,7 @@ import { HistoricosModule } from "src/historicos/historicos.module";
     forwardRef(() => UsuariosModule), // CORRETO!
     forwardRef(() => RequerimentosModule),
     forwardRef(() => HistoricosModule),
+    forwardRef(() => MailModule), 
   ],
   exports: [RequerimentosService], // Exporta só o service
 })
