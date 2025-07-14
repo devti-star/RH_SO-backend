@@ -144,12 +144,18 @@ export class MailService {
     );
   }
 
-  async sendChangeStateEmail(usuario: UsuarioResponseDto, etapaAnterior: Etapa, etapaAtual: Etapa, status: Status) {
+  async sendChangeStateEmail(usuario: UsuarioResponseDto, etapaAnterior: Etapa, etapaAtual: Etapa, novoStatus: Status, exibirNovaEtapa: boolean = true) {
     const etapa: string[] = [
       "TRIAGEM",
       "MÉDICO",
       "ENFERMEIRO",
       "AJUSTE"
+    ]
+
+    const status: string[] = [
+      "INDEFERIDO",
+      "DEFERIDO",
+      "EM_PROCESSO",
     ]
     
     const logoPath = join(__dirname, "templates", "assets", "logo.png");
@@ -162,8 +168,9 @@ export class MailService {
       {
         name: usuario.nomeCompleto,
         etapaAnterior: etapa[etapaAnterior],
+        exibirNovaEtapa,
         etapaAtual: etapa[etapaAtual],
-        status: status,
+        status: status[novoStatus],
         link: this.configService.get<string>("URL_FRONT_APPLICATION"),
         currentYear: new Date().getFullYear(),
         appName: "SESMT", 

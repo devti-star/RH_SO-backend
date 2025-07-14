@@ -106,8 +106,10 @@
       <p>
         Informamos que o seu atestado avançou de etapa no fluxo de análise.<br>
         <strong>Etapa anterior:</strong> {{etapaAnterior}}<br>
-        <strong>Nova etapa:</strong> {{etapaAtual}}
-        <strong>Nova etapa:</strong> {{status}}
+        {{#if exibirNovaEtapa}}
+          <strong>Nova etapa:</strong> {{etapaAtual}}<br>
+        {{/if}}
+        <strong>Status:</strong> {{status}}
       </p>
       <div class="text-center">
         <a href="{{link}}" class="button">Para mais detalhes acesse o site.</a>

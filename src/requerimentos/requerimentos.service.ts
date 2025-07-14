@@ -123,7 +123,6 @@ export class RequerimentosService {
     updateRequerimentoDto: UpdateRequerimentoDto,
     usuario: Usuario
   ) {
-    console.log("updateRequerimentoDto", updateRequerimentoDto);
     
     // Atualiza documentos (Atestados), se vieram no DTO
     const updateDoc: any = {};
@@ -152,20 +151,26 @@ export class RequerimentosService {
       throw new Error(`Requerimento com id ${id} não encontrado para update.`);
     }
 
-    console.log("requerimento atual", reqAtual);
     const usuarioAtual = await this.usuarioService.findOne(reqAtual.usuario.id);
     if (!usuarioAtual) {
       throw new UsuarioNotFoundException(reqAtual.usuario.id);
     }
 
-    console.log("Etapa atual ", reqAtual.etapa);
-    console.log("Nova etapa ", updateRequerimentoDto.etapa);
     if ( updateRequerimentoDto.etapa && updateRequerimentoDto.etapa !== reqAtual.etapa) {
       await this.mailService.sendChangeStateEmail(
         usuarioAtual,
         reqAtual.etapa,
         updateRequerimentoDto.etapa,
         reqAtual.status
+      )
+    }
+    else if (updateRequerimentoDto.status !== undefined && updateRequerimentoDto.status !== reqAtual.status) {
+      await this.mailService.sendChangeStateEmail(
+        usuarioAtual,
+        reqAtual.etapa,
+        reqAtual.etapa,
+        updateRequerimentoDto.status,
+        false
       )
     }
 
