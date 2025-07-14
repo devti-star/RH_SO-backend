@@ -2,7 +2,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Documento } from './entities/documento.entity';
+import { Atestado, Documento } from './entities/documento.entity';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Requerimento } from '../requerimentos/entities/requerimento.entity';
@@ -17,6 +17,8 @@ export class DocumentosService {
   constructor(
     @InjectRepository(Documento)
     private readonly repositorioDocumento: Repository<Documento>,
+    @InjectRepository(Atestado) 
+    private readonly repositorioAtestado: Repository<Atestado>,
     private readonly fileStorage: FileStorageService,
   ) {}
 
@@ -36,12 +38,12 @@ export class DocumentosService {
     const destino = path.join(this.uploadDir, filename);
     await fs.promises.writeFile(destino, file.buffer);
 
-    const doc = this.repositorioDocumento.create({
+    const doc = this.repositorioAtestado.create({
       caminho: filename,
       requerimento: { id: requerimentoId } as Requerimento,
       dataEnvio: new Date(),
     });
-    return this.repositorioDocumento.save(doc);
+    return this.repositorioAtestado.save(doc);
   }
 
   // Substitui arquivo se existir, ou cria um novo se não existir
