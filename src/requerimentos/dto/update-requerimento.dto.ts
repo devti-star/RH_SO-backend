@@ -4,7 +4,7 @@ import { IsOptional, IsArray, ValidateNested, IsNumber, IsString, IsBoolean } fr
 import { Type } from 'class-transformer';
 import { Checklist } from 'src/documentos/models/checklist';
 
-class DocumentoJustificativaDto {
+export class DocumentoJustificativaDto {
   @IsNumber()
   id: number;
 
@@ -19,6 +19,10 @@ class DocumentoJustificativaDto {
   @IsOptional()
   @IsBoolean()
   concluido?: boolean; // <-- Adicione esta linha!
+
+  @IsOptional()
+  @IsBoolean()
+  maior3dias:boolean;
 }
 
 export class UpdateRequerimentoDto extends PartialType(CreateRequerimentoDto) {

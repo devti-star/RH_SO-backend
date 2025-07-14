@@ -7,5 +7,4 @@ export class Checklist {
   incisoVI: boolean;
   incisoVII: boolean;
   incisoVIII: boolean;
-  periodoMaiorQue3Dias: boolean;
 }

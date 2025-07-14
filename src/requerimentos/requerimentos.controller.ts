@@ -66,16 +66,18 @@ export class RequerimentosController {
     return this.requerimentosService.changeStage(
       idRequerimento,
       user.id,
-      changeStageRequerimentoDto
+      changeStageRequerimentoDto,
+      user
     );
   }
 
   @Patch(":id")
   update(
-    @Param("id") id: string,
-    @Body() updateRequerimentoDto: UpdateRequerimentoDto
+    @Param("id", ParseIntPipe) id: number,
+    @Body() updateRequerimentoDto: UpdateRequerimentoDto,
+    @CurrentUser() usuario: Usuario
   ) {
-    return this.requerimentosService.update(+id, updateRequerimentoDto);
+    return this.requerimentosService.update(id, updateRequerimentoDto, usuario);
   }
 
 
