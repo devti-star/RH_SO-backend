@@ -61,7 +61,7 @@ export class UsuariosController {
   async create(@Body() createUsuarioDto: CreateUsuarioDto) {
     const usuario = await this.usuariosService.criar(createUsuarioDto);
     const token = await this.tokenService.generateToken(usuario.id);
-    const link = this.configService.get<string>("ACTIVATE_LINK") + "/" + token;
+    const link = this.configService.get<string>("URL_FRONT_APPLICATION") + "/activate/" + token;
 
     await this.mailService.sendActivationEmail(
       usuario.email,

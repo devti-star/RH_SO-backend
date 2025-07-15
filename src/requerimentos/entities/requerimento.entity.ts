@@ -44,7 +44,7 @@ export class Requerimento {
   criadoEm: Date;
 
   // RELACIONAMENTO COM USUÁRIO (N requs para 1 usuario)
-  @ManyToOne(() => Usuario, (usuario) => usuario.requerimentos)
+  @ManyToOne(() => Usuario, (usuario) => usuario.requerimentos, { eager: true })
   usuario: Usuario;
 
   // RELACIONAMENTO COM DOCUMENTOS (1 requerimento para N documentos)
@@ -53,5 +53,5 @@ export class Requerimento {
 
   // RELACIONAMENTO 1 PARA 1 COM HISTÓRICO (historico tem a foreign key)
   @OneToMany(() => Historico, (historico) => historico.requerimento)
-  historico: Historico;
+  historico: Historico[];
 }

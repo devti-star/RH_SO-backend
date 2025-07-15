@@ -2,10 +2,18 @@ import { Injectable } from "@nestjs/common";
 import { MailerService } from "@nestjs-modules/mailer";
 import { join } from "path";
 import * as fs from "fs";
+import { setUncaughtExceptionCaptureCallback } from "process";
+import { Etapa } from "src/enums/etapa.enum";
+import { ConfigService } from "@nestjs/config";
+import { UsuarioResponseDto } from "src/usuarios/dto/usuario-response.dto";
+import { Status } from "src/enums/status.enum";
 
 @Injectable()
 export class MailService {
-  constructor(private readonly mailerService: MailerService) { }
+  constructor(
+    private readonly mailerService: MailerService,
+    private readonly configService: ConfigService
+  ) {}
 
   async sendDynamicEmail(
     to: string,
@@ -111,8 +119,11 @@ export class MailService {
     );
   }
 
-
-  async sendActivatedEmail(email: string, name: string, link: string | undefined) {
+  async sendActivatedEmail(
+    email: string,
+    name: string,
+    link: string | undefined
+  ) {
     const logoPath = join(__dirname, "templates", "assets", "logo.png");
     await this.sendDynamicEmail(
       email,
@@ -124,6 +135,68 @@ export class MailService {
         link,
         currentYear: new Date().getFullYear(),
         appName: "SESMT",
+        supportEmail: "sesmt@treslagoas.ms.gov.br",
+      },
+      [
+        {
+          filename: "logoBranca.png",
+          path: logoPath,
+          cid: "logo",
+        },
+      ]
+    );
+  }
+
+  async sendChangeStateEmail(
+    usuario: UsuarioResponseDto,
+    etapaAnterior: Etapa,
+    etapaAtual: Etapa,
+    novoStatus: Status,
+    exibirNovaEtapa: boolean = true
+  ) {
+    const etapa: string[] = ["TRIAGEM", "MÉDICO", "ENFERMEIRO", "AJUSTE"];
+
+    const status: string[] = ["INDEFERIDO", "DEFERIDO", "EM PROCESSO"];
+
+    const logoPath = join(__dirname, "templates", "assets", "logo.png");
+    await this.sendDynamicEmail(
+      usuario.email,
+      "Alteração de Etapa",
+      "",
+      "change_stage",
+      {
+        name: usuario.nomeCompleto,
+        etapaAnterior: etapa[etapaAnterior],
+        exibirNovaEtapa,
+        etapaAtual: etapa[etapaAtual],
+        status: status[novoStatus],
+        link: this.configService.get<string>("URL_FRONT_APPLICATION"),
+        currentYear: new Date().getFullYear(),
+        appName: "SESMT",
+        supportEmail: "sesmt@treslagoas.ms.gov.br",
+      },
+      [
+        {
+          filename: "logoBranca.png",
+          path: logoPath,
+          cid: "logo",
+        },
+      ]
+    );
+  }
+  async sendPresentialExameEmail(usuario: UsuarioResponseDto) {    
+    const logoPath = join(__dirname, "templates", "assets", "logo.png");
+    await this.sendDynamicEmail(
+      usuario.email,
+      "Exame Presencial",
+      "",
+      "presential_exame",
+      {
+        name: usuario.nomeCompleto,
+        localConsulta: "SESMT",
+        link: this.configService.get<string>("URL_FRONT_APPLICATION"),
+        appName: "SESMT",
+        currentYear: new Date().getFullYear(),
         supportEmail: "sesmt@treslagoas.ms.gov.br",
       },
       [
