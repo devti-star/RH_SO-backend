@@ -16,6 +16,8 @@ import { ChangeStageRequerimentoDto } from "./dto/change-stage-requerimento.dto"
 import { HistoricosService } from "src/historicos/historicos.service";
 import { Usuario } from "src/usuarios/entities/usuario.entity";
 import { MailService } from "src/mail/mail.service";
+import { Status } from "src/enums/status.enum";
+import { Etapa } from "src/enums/etapa.enum";
 
 
 @Injectable()
@@ -124,6 +126,11 @@ export class RequerimentosService {
     usuario: Usuario
   ) {
     
+    let docOld: Atestado | undefined | null = undefined;
+    if (updateRequerimentoDto?.documentos?.[0] !== undefined){
+      docOld = await this.atestadoRepository.findOne({ where: { id: updateRequerimentoDto.documentos[0].id } });
+    }
+
     // Atualiza documentos (Atestados), se vieram no DTO
     const updateDoc: any = {};
     if (updateRequerimentoDto.documentos) {
@@ -172,6 +179,9 @@ export class RequerimentosService {
         updateRequerimentoDto.status,
         false
       )
+    }
+    if(updateRequerimentoDto.status === Status.EM_PROCESSO && updateRequerimentoDto.etapa === Etapa.MEDICO && updateDoc.maior3dias === true) {
+      await this.mailService.sendPresentialExameEmail(usuarioAtual);
     }
 
     const camposAlterados: any = {};
