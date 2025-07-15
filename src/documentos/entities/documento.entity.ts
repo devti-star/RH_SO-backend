@@ -41,6 +41,9 @@ export class Atestado extends Documento {
   @Column({ length: 255, nullable: true })
   justificativa: string; // Justificativa para o atestado, se necessário
 
+  @Column({ length: 50, nullable: true })
+  qtdDias: string; // Quantidade de dias do atestado
+
   // Adicione mais campos que sejam específicos de atestado, se necessário
 }
 
