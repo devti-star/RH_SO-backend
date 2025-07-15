@@ -55,7 +55,7 @@ import { DefaultIdGuard } from "./auth/guards/check-id-default-user.guard";
   providers: [
     AppService,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
-    { provide: APP_GUARD, useClass: DefaultIdGuard },
+   // { provide: APP_GUARD, useClass: DefaultIdGuard },
   ],
 })
 export class AppModule {}

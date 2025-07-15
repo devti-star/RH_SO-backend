@@ -21,7 +21,7 @@ export class CreateAtestadoDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => Checklist)
-  checklis: Checklist[];
+  checklist: Checklist[];
 
   @IsString()
   @IsOptional()
