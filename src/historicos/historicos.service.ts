@@ -51,6 +51,7 @@ export class HistoricosService {
     const lastRecord = await this.repositorioHistorico.findOne({
       where: { requerimento: { id: idRequerimento } },
       order: { dataRegistro: "DESC" },
+       relations: ['funcionario'],
     });
 
     if (!lastRecord) throw new HistoricoNotFoundException(idRequerimento);
