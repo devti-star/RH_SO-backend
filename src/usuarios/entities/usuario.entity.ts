@@ -56,7 +56,7 @@ export class Usuario {
   @Column({ length: 25, unique: true })
   cpf: string;
 
-  @OneToOne(() => RG, { cascade: true }) 
+  @OneToOne(() => RG, { cascade: true, eager: true }) 
   @JoinColumn()
   rg: RG;
 
