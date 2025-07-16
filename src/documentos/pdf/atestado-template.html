@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Atestado Médico</title>
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 12px; margin: 40px; }
+    .header { text-align: center; font-size: 18px; font-weight: bold; }
+    .info-table { width: 100%; margin-bottom: 10px; }
+    .info-table td { padding: 2px 8px; }
+    .checklist-table, .checklist-table th, .checklist-table td {
+      border: 1px solid #888; border-collapse: collapse;
+      text-align: left;
+    }
+    .checklist-table { width: 100%; margin: 10px 0; }
+    .checklist-table th, .checklist-table td { padding: 4px 6px; }
+    .footer-table { width: 100%; margin-top: 30px; }
+    .footer-table td { padding: 4px 10px; }
+    .assinatura { margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="header">ATESTADO MÉDICO</div>
+  <table class="info-table">
+    <tr>
+      <td><b>Nome:</b> {{nomeCompleto}}</td>
+      <td><b>Matrícula:</b> {{matricula}}</td>
+      <td><b>Secretaria:</b> {{secretaria}}</td>
+    </tr>
+    <tr>
+      <td><b>CPF:</b> {{cpf}}</td>
+      <td><b>Departamento:</b> {{departamento}}</td>
+      <td><b>Local de trabalho:</b> {{localTrabalho}}</td>
+    </tr>
+    <tr>
+      <td><b>Telefone:</b> {{telefone}}</td>
+      <td><b>E-mail:</b> {{email}}</td>
+      <td><b>Assinatura:</b> {{assinatura}}</td>
+    </tr>
+  </table>
+
+  <div><b>Checklist Resolução CFM Nº 2.381/2024 – §1º do artigo 2º:</b></div>
+  <table class="checklist-table">
+    <tr>
+      <th>Inciso</th>
+      <th>Descrição</th>
+      <th>NÃO</th>
+      <th>SIM</th>
+    </tr>
+    {{checklist}}
+  </table>
+
+  <div class="assinatura">
+    <b>Responsável pelo recebimento e verificação do Atestado:</b> {{responsavelRecebimento}}
+  </div>
+  <div><b>Status:</b> {{status}}</div>
+  <div><b>Obs:</b> {{observacao}}</div>
+
+  <table class="footer-table" border="1">
+    <tr>
+      <td>
+        <b>COORDENADOR DO PCMSO</b><br>
+        {{coordenadorNome}}<br>
+        CRM {{coordenadorCrm}}
+      </td>
+      <td><b>MÉDICO EXAMINADOR</b></td>
+      <td style="width:180px">
+        <b>Deferido Integralmente</b><br>
+        <b>Deferido por:</b> {{qtdDias}} dias<br>
+        <b>Indeferido</b>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

@@ -27,7 +27,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
           debug: false // Ativa modo debug
         },
         defaults: {
-          from: '"No Reply" <dev.ti@treslagoas.ms.gov.br>',
+          from: '"SESMT- Não Responda" <dev.ti@treslagoas.ms.gov.br>',
         },
         template: {
           dir: join(__dirname, 'templates'), // Caminho absoluto para templates
