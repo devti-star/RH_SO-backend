@@ -135,11 +135,11 @@ export class RequerimentosService {
     const updateDoc: any = {};
     if (updateRequerimentoDto.documentos) {
       for (const doc of updateRequerimentoDto.documentos as DocumentoJustificativaDto[]) {
-        if (doc.justificativa !== undefined)
-          updateDoc.justificativa = doc.justificativa;
+        if (doc.justificativa !== undefined) updateDoc.justificativa = doc.justificativa;
         if (doc.checklist !== undefined) updateDoc.checklist = doc.checklist;
         if (doc.concluido !== undefined) updateDoc.concluido = doc.concluido; // <--- ESSA LINHA É FUNDAMENTAL!
         if (doc.maior3dias !== undefined) updateDoc.maior3dias = doc.maior3dias;
+        if (doc.qtdDias !== undefined) updateDoc.qtdDias = doc.qtdDias;
 
         if (Object.keys(updateDoc).length === 0) continue;
         await this.atestadoRepository
