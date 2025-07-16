@@ -18,6 +18,8 @@ import { SharedModule } from "./shared/services/shared.module";
 import { ActivateService } from "./usuarios/activate/activate.service";
 import { DocumentosModule } from './documentos/documentos.module';
 import { DefaultIdGuard } from "./auth/guards/check-id-default-user.guard";
+import { RelatorioAtestado } from "./relatorio-atestado/entities/relatorio-atestado.viewentity";
+import { RelatorioAtestadoModule } from "./relatorio-atestado/module/relatorio-atestado.module";
 
 
 
@@ -46,6 +48,7 @@ import { DefaultIdGuard } from "./auth/guards/check-id-default-user.guard";
     HistoricosModule,
     RGModule,
     AuthModule,
+    RelatorioAtestadoModule,
     SharedModule, // Módulo compartilhado
     ActivateModule, // Módulo do controller
     DocumentosModule,
