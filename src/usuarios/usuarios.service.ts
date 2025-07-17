@@ -21,6 +21,9 @@ import * as path from "path";
 import { RequerimentosService } from "src/requerimentos/requerimentos.service";
 import { UsuarioNotFoundException } from "src/shared/exceptions/usuario-not-found.exception";
 import { Usuariofactory } from "src/shared/factory/usuario-factory";
+import { EnfermeiroResponseDto } from "./dto/enfermeiro-response.dto";
+import { MedicoResponseDto } from "./dto/medico-response.dto";
+import { UsuarioResponseFactory } from "src/shared/factory/usuario-response-factory";
 
 @Injectable()
 export class UsuariosService {
@@ -103,18 +106,38 @@ export class UsuariosService {
 
   async findOne(
     id: number,
-    campos: (keyof UsuarioResponseDto)[] = []
-  ): Promise<UsuarioResponseDto> {
-    const usuario = await this.repositorioUsuario.findOne({
+    campos: (keyof UsuarioResponseDto)[] = [],
+    role: Role = Role.PADRAO,
+  ): Promise<UsuarioResponseDto | EnfermeiroResponseDto | MedicoResponseDto > {
+    let repositorio: Repository<Usuario> = this.repositorioUsuario;
+    switch (role) {
+      case Role.MEDICO:
+        console.log("aqui");
+        repositorio = this.repositorioMedico;
+        break;
+      case Role.ENFERMEIRO:
+        repositorio = this.repositorioEnfermeiro;
+        break;
+      case Role.PADRAO:
+      case Role.RH:
+      case Role.PS:
+      case Role.ADMIN:
+      case Role.TRIAGEM:
+        repositorio = this.repositorioUsuario;
+        break;
+      default:
+        throw new BadRequestException("Role inválida");
+    }
+    const usuario = await repositorio.findOne({
       where: { id },
       select: campos.length > 0 ? campos : undefined,
       relations: campos.includes("rg") ? { rg: true } : { rg: false },
     });
-
+    console.log("findOne usuario", usuario);
     if (!usuario) {
       throw new UsuarioNotFoundException(id);
     }
-    const usuarioResponse: UsuarioResponseDto = new UsuarioResponseDto(usuario);
+    const usuarioResponse: UsuarioResponseDto | EnfermeiroResponseDto | MedicoResponseDto = UsuarioResponseFactory.createResponse(usuario, role);
     return usuarioResponse;
   }
 

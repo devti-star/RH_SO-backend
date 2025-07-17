@@ -36,7 +36,7 @@ export class HistoricosService {
         createHistoricoDto.requerimentoId
       );
 
-    const novoRegistro = this.repositorioHistorico.create({
+    const novoRegistro = await this.repositorioHistorico.create({
       ...createHistoricoDto,
       funcionario: usuario,
       requerimento: requerimento,

@@ -23,6 +23,14 @@ export class DocumentoJustificativaDto {
   @IsOptional()
   @IsBoolean()
   maior3dias:boolean;
+
+  @IsOptional()
+  @IsString()
+  qtdDias?: string;
+
+  @IsOptional()
+  @IsString()
+  assinatura?: string;
 }
 
 export class UpdateRequerimentoDto extends PartialType(CreateRequerimentoDto) {
@@ -38,5 +46,10 @@ export class UpdateRequerimentoDto extends PartialType(CreateRequerimentoDto) {
 
   @IsOptional()
   @IsNumber()
+  @Type(() => Number) 
   etapa?: number;
+
+  @IsOptional()
+  @IsString()
+  observacao?: string;
 }

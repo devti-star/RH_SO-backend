@@ -50,21 +50,21 @@ export class RequerimentosService {
     if (!usuario)
       throw new UsuarioNotFoundException(createRequerimentoDto.usuarioId);
 
-    const novoRequerimento = this.repositorioRequerimento.create({
+    const novoRequerimento = await this.repositorioRequerimento.create({
       ...createRequerimentoDto,
       usuario: usuario,
     });
 
-    const novoHistorico = this.historicoService.create({
-      requerimentoId: novoRequerimento.id,
-      funcionarioId: usuario.id,
-      etapaAtual: novoRequerimento.etapa,
-      etapaDestino: novoRequerimento.etapa,
-      observacao: novoRequerimento.observacao,
-    });
+    
+    const requerimentoSalvo = await this.repositorioRequerimento.save(novoRequerimento);
 
-    const requerimentoSalvo =
-      await this.repositorioRequerimento.save(novoRequerimento);
+    const novoHistorico = await this.historicoService.create({
+      requerimentoId: requerimentoSalvo.id,
+      funcionarioId: usuario.id,
+      etapaAtual: requerimentoSalvo.etapa,
+      etapaDestino: requerimentoSalvo.etapa,
+      observacao: requerimentoSalvo.observacao,
+    });
 
     return new RequerimentoReponseDto(novoRequerimento);
   }
@@ -135,14 +135,14 @@ export class RequerimentosService {
     const updateDoc: any = {};
     if (updateRequerimentoDto.documentos) {
       for (const doc of updateRequerimentoDto.documentos as DocumentoJustificativaDto[]) {
-        if (doc.justificativa !== undefined)
-          updateDoc.justificativa = doc.justificativa;
+        if (doc.justificativa !== undefined) updateDoc.justificativa = doc.justificativa;
         if (doc.checklist !== undefined) updateDoc.checklist = doc.checklist;
         if (doc.concluido !== undefined) updateDoc.concluido = doc.concluido; // <--- ESSA LINHA É FUNDAMENTAL!
         if (doc.maior3dias !== undefined) updateDoc.maior3dias = doc.maior3dias;
+        if (doc.qtdDias !== undefined) updateDoc.qtdDias = doc.qtdDias;
 
         if (Object.keys(updateDoc).length === 0) continue;
-        await this.documentoRepository
+        await this.atestadoRepository
           .createQueryBuilder()
           .update()
           .set(updateDoc)
@@ -240,5 +240,28 @@ export class RequerimentosService {
       },
       usuario
     );
+  }
+
+
+  async updateObservacao(id: number, updateRequerimentoDto: UpdateRequerimentoDto) {
+    const requerimento = await this.findOne(id);
+    if (!requerimento) {
+      throw new RequerimentoNotFoundException(id);
+    }
+
+    const reqAtual = await this.repositorioRequerimento.findOneBy({ id });
+    if (!reqAtual) {
+      throw new RequerimentoNotFoundException(id);
+    }
+    await this.historicoService.create({
+        requerimentoId: id,
+        funcionarioId: reqAtual.usuario.id,
+        etapaAtual: reqAtual.etapa,
+        etapaDestino: updateRequerimentoDto.etapa ?? reqAtual.etapa,
+        observacao: updateRequerimentoDto.observacao,
+      });
+
+    return this.repositorioRequerimento.update(id, updateRequerimentoDto);
+
   }
 }
