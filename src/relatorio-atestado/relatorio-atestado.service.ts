@@ -4,6 +4,8 @@ import { Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as puppeteer from 'puppeteer';
 import { compile } from 'handlebars';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class RelatorioAtestadoService {
@@ -92,7 +94,7 @@ export class RelatorioAtestadoService {
                         }
 
                         .assinatura { margin-top: 40px; }
-                        .assinatura .linha { border-top: 1px solid #000; width: 100%; margin-top: 5px; }
+                        .linha { border-top: 1px solid #000; width: 100%; margin-top: 5px; }
                         .observacoes { margin-top: 60px; }
                         .linha-observacao { border-top: 1px solid #000; margin-top: 20px; width: 100%; }
                     </style>
@@ -163,17 +165,38 @@ export class RelatorioAtestadoService {
                             {{/each}}
                         </tbody>
                     </table>
-                    <div class="assinatura">
-                        <div>Assinatura do Responsável:</div>
-                        <div class="linha"></div>
-                    </div>
 
-                    <div class="observacoes">
-                        <div>Observações:</div>
-                        {{#each observacoes}}
-                        <div class="linha-observacao"></div>
-                        {{/each}}
-                    </div>
+ <table>
+                        <thead>
+                            <tr>
+                            <th>Coordenador do PCSMO</th>
+                            <th>Responsavel</th>
+                            <th>Responsável pelo recebimento</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                                <tr>
+                                    <td>
+                                        Dr. Leeandro Araujo
+                                        <br>
+                                        CRM 6322
+                                    </td>
+                                    <td class="checkbox-cell">
+                                        <br>
+                                        <br>
+                                        <br>
+                                        <div class="linha"></div>
+                                    </td>
+                                    <td class="checkbox-cell">
+                                        <br>
+                                        <br>
+                                        <br>
+                                        <div class="linha"></div>
+                                    </td>
+                                </tr>
+                        </tbody>
+                    </table>
                 </body>
         </html>
         `;
@@ -189,11 +212,17 @@ export class RelatorioAtestadoService {
         if(!dados)
             throw new Error("Dados vazios");
         
+        const imagePath = path.join(process.cwd(), 'src/relatorio-atestado/logo.png');
+        const imageBuffer = fs.readFileSync(imagePath);
+        const base64Image = imageBuffer.toString('base64');
+        const logoDataURL = `data:image/png;base64,${base64Image}`
+
         const incisos = this.RecuperaIncesosParaArray(dados);
         // Renderizar HTML
         const html = template({
             ...dados,
             itens: [incisos], // precisa ser array de arrays
+            logo: logoDataURL
         });
 
         let browser;
