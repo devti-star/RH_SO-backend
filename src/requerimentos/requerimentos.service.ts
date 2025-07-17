@@ -241,4 +241,27 @@ export class RequerimentosService {
       usuario
     );
   }
+
+
+  async updateObservacao(id: number, updateRequerimentoDto: UpdateRequerimentoDto) {
+    const requerimento = await this.findOne(id);
+    if (!requerimento) {
+      throw new RequerimentoNotFoundException(id);
+    }
+
+    const reqAtual = await this.repositorioRequerimento.findOneBy({ id });
+    if (!reqAtual) {
+      throw new RequerimentoNotFoundException(id);
+    }
+    await this.historicoService.create({
+        requerimentoId: id,
+        funcionarioId: reqAtual.usuario.id,
+        etapaAtual: reqAtual.etapa,
+        etapaDestino: updateRequerimentoDto.etapa ?? reqAtual.etapa,
+        observacao: updateRequerimentoDto.observacao,
+      });
+
+    return this.repositorioRequerimento.update(id, updateRequerimentoDto);
+
+  }
 }
