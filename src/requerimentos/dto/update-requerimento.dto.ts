@@ -46,7 +46,10 @@ export class UpdateRequerimentoDto extends PartialType(CreateRequerimentoDto) {
 
   @IsOptional()
   @IsNumber()
+  @Type(() => Number) 
   etapa?: number;
 
-  
+  @IsOptional()
+  @IsString()
+  observacao?: string;
 }

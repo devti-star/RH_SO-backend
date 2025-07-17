@@ -14,6 +14,7 @@ import { memoryStorage } from 'multer';
 import { DocumentosService } from './documentos.service';
 import { Documento } from './entities/documento.entity';
 import { CreateAtestadoDto } from './dto/create-atestado.dto';
+import { UpdateRequerimentoDto } from 'src/requerimentos/dto/update-requerimento.dto';
 
 @Controller('documentos')
 export class DocumentosController {
@@ -54,8 +55,9 @@ export class DocumentosController {
   }))
   async substituirArquivo(
     @UploadedFile() file: Express.Multer.File,
-    @Param('requerimentoId', ParseIntPipe) requerimentoId: number
+    @Param('requerimentoId', ParseIntPipe) requerimentoId: number,
+    @Body() updateRequerimentoDto: UpdateRequerimentoDto,
   ): Promise<Documento> {
-    return this.documentosService.substituirArquivoDocumento(requerimentoId, file);
+    return this.documentosService.substituirArquivoDocumento(requerimentoId, file, updateRequerimentoDto);
   }
 }

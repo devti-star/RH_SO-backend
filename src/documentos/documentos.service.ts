@@ -9,6 +9,8 @@ import { Requerimento } from '../requerimentos/entities/requerimento.entity';
 import { FileStorageService } from '../shared/services/file-storage.service';
 import { CreateAtestadoDto } from './dto/create-atestado.dto';
 import { DocumentNotFoundException } from 'src/shared/exceptions/document-not-found.exception';
+import { RequerimentosService } from 'src/requerimentos/requerimentos.service';
+import { UpdateRequerimentoDto } from 'src/requerimentos/dto/update-requerimento.dto';
 
 @Injectable()
 export class DocumentosService {
@@ -20,6 +22,7 @@ export class DocumentosService {
     @InjectRepository(Atestado) 
     private readonly repositorioAtestado: Repository<Atestado>,
     private readonly fileStorage: FileStorageService,
+    private readonly requerimentoService: RequerimentosService,
   ) {}
 
   async create(requerimentoId: number, file: Express.Multer.File): Promise<Documento> {
@@ -47,7 +50,7 @@ export class DocumentosService {
   }
 
   // Substitui arquivo se existir, ou cria um novo se não existir
-  async substituirArquivoDocumento(requerimentoId: number, file: Express.Multer.File): Promise<Documento> {
+  async substituirArquivoDocumento(requerimentoId: number, file: Express.Multer.File, updateRequerimentoDto: UpdateRequerimentoDto): Promise<Documento> {
     if (!file) {
       throw new BadRequestException('Arquivo não enviado');
     }
@@ -58,7 +61,7 @@ export class DocumentosService {
     }
 
     // Busca documento já existente
-    let documentoExistente = await this.repositorioDocumento.findOne({
+    let documentoExistente = await this.repositorioAtestado.findOne({
       where: { requerimento: { id: requerimentoId } }
     });
 
@@ -70,14 +73,17 @@ export class DocumentosService {
 
     await fs.promises.writeFile(destino, file.buffer);
 
+    await this.requerimentoService.updateObservacao(requerimentoId, updateRequerimentoDto);
+
+    
     if (!documentoExistente) {
       // Se NÃO existir, cria um novo documento e retorna!
-      const novoDoc = this.repositorioDocumento.create({
+      const novoDoc = this.repositorioAtestado.create({
         caminho: filename,
         requerimento: { id: requerimentoId } as Requerimento,
         dataEnvio: new Date()
       });
-      return this.repositorioDocumento.save(novoDoc);
+      return this.repositorioAtestado.save(novoDoc);
     } else {
       // Se existir, remove o antigo do disco (se existir)
       if (documentoExistente.caminho) {
@@ -90,14 +96,14 @@ export class DocumentosService {
       // Atualiza o registro do banco de dados
       documentoExistente.caminho = filename;
       documentoExistente.dataEnvio = new Date();
-      await this.repositorioDocumento.save(documentoExistente);
+      await this.repositorioAtestado.save(documentoExistente);
 
       return documentoExistente;
     }
   }
 
   async findOne(id: number) {
-    const documento = await this.repositorioDocumento.findOne({
+    const documento = await this.repositorioAtestado.findOne({
       where: { id }
     });
 
