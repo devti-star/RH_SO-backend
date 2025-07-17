@@ -1,13 +1,36 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post } from "@nestjs/common";
-import { RelatorioAtestadoService } from "../relatorio-atestado.service";
+import { Controller, Get, Param, Res } from '@nestjs/common';
 
-@Controller('relatorio-atestado')
-export class RelatorioAtestadoController{
-    constructor(private readonly relatorioAtestadoService: RelatorioAtestadoService){}
+import { Response } from 'express';
+import { RelatorioAtestadoService } from '../relatorio-atestado.service';
 
-    @Get(':idRequerimento')
-    async create(@Param('idRequerimento', ParseIntPipe) idRequerimento: number){
-        return this.relatorioAtestadoService.create(idRequerimento);
+@Controller('relatorios-atestado')
+export class RelatorioAtestadoController {
+  constructor(
+    private readonly relatorioService: RelatorioAtestadoService
+  ) {}
+
+  @Get(':id')
+  async gerarRelatorio(
+    @Param('id') id: number,
+    @Res() res: Response
+  ) {
+    try {
+      const pdfBuffer = await this.relatorioService.create(id);
+      
+      // Configurar cabeçalhos da resposta
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename=relatorio-${id}.pdf`,
+        'Content-Length': pdfBuffer.length
+      });
+
+      // Enviar PDF
+      res.end(pdfBuffer);
+    } catch (error) {
+      res.status(500).json({
+        statusCode: 500,
+        message: error.message || 'Erro ao gerar relatório'
+      });
     }
-
+  }
 }

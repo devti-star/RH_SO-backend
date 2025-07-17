@@ -1,0 +1,141 @@
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body {
+                 font-family: Arial, sans-serif; margin: 50px; 
+                 }
+
+                .element-header{
+                    width: 30%;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+                table {
+                    border-collapse: collapse;
+                    width: 100%;
+                    max-width: 600px;
+                    margin: 20px auto;
+                    font-family: Arial, sans-serif;
+                    text-align: center;
+                }
+
+                th, td {
+                    border: 1px solid #ccc;
+                    padding: 10px;
+                }
+
+                th {
+                    background-color: #f4f4f4;
+                }
+
+                td:first-child {
+                    text-align: left;
+                }
+
+                .checkbox-cell input[type="checkbox"] {
+                    transform: scale(1.3);
+                    cursor: pointer;
+                }
+                .assinatura { margin-top: 40px; }
+                .assinatura .linha { border-top: 1px solid #000; width: 100%; margin-top: 5px; }
+                .observacoes { margin-top: 60px; }
+                .linha-observacao { border-top: 1px solid #000; margin-top: 20px; width: 100%; }
+            </style>
+        </head>
+        <body>
+            <div style="display: flex; flex-direction: row; justify-content: space-between; width: 100%;">
+                <div class="element-header">
+                    <img src="LOGO PADRÃO (Cópia).tmp.png" alt="Descrição da imagem" width="250" height="75">
+                </div>
+                <div class="element-header">
+                    <span>RELATORIO DE CONCLUSÃO<br> DE REQUERIMENTO</span>
+                </div>
+                <div class="element-header">
+                    <span>RELATORIO DE CONCLUSÃO<br> DE REQUERIMENTO</span>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: center;">
+                <h1 style="text-align: center; width: 450px;">RELATÓRIO DE CONCLUSÃO DE PROCESSO</h1>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                    <th>Incisos</th>
+                    <th>Sim</th>
+                    <th>Não</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                    <td>Recebeu treinamento?</td>
+                        <td class="checkbox-cell"><input type="checkbox" name="treinamento_sim"></td>
+                        <td class="checkbox-cell"><input type="checkbox" name="treinamento_nao"></td>
+                    </tr>
+                    <tr>
+                    <td>Possui EPI?</td>
+                        <td class="checkbox-cell"><input type="checkbox" name="epi_sim"></td>
+                        <td class="checkbox-cell"><input type="checkbox" name="epi_nao"></td>
+                    </tr>
+                    <tr>
+                    <td>Está apto ao trabalho?</td>
+                        <td class="checkbox-cell"><input type="checkbox" name="apto_sim"></td>
+                        <td class="checkbox-cell"><input type="checkbox" name="apto_nao"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+
+            <table class="tabela1">
+                <tr>
+                    <td class="cinza">Nome:</td>
+                    <td class="branco">{{nome}}</td>
+                    <td class="cinza">Data:</td>
+                    <td class="branco">{{data}}</td>
+                </tr>
+                <tr>
+                    <td class="cinza">Cargo:</td>
+                    <td class="branco">{{cargo}}</td>
+                    <td class="cinza">Setor:</td>
+                    <td class="branco">{{setor}}</td>
+                </tr>
+                <tr>
+                    <td class="cinza">Turno:</td>
+                    <td class="branco">{{turno}}</td>
+                    <td class="cinza">Supervisor:</td>
+                    <td class="branco">{{supervisor}}</td>
+                </tr>
+                <tr>
+                    <td class="cinza">Local:</td>
+                    <td class="branco">{{local}}</td>
+                    <td class="cinza">Extensão:</td>
+                    <td class="branco">{{extensao}}</td>
+                </tr>
+            </table>
+
+            <table class="tabela2">
+                {{#each itens}}
+                <tr>
+                    {{#each this}}
+                    <td>{{this}}</td>
+                    {{/each}}
+                </tr>
+                {{/each}}
+            </table>
+
+            <div class="assinatura">
+                <div>Assinatura do Responsável:</div>
+                <div class="linha"></div>
+            </div>
+
+            <div class="observacoes">
+                <div>Observações:</div>
+                {{#each observacoes}}
+                <div class="linha-observacao"></div>
+                {{/each}}
+            </div>
+        </body>
+</html>

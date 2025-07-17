@@ -12,12 +12,13 @@ import { ViewColumn, ViewEntity } from "typeorm";
       .addSelect("u.departamento", "departamento")
       .addSelect("u.secretaria", "secretaria")
       .addSelect("u.telefone", "telefone")
-      .addSelect("string_agg(DISTINCT d.tipo_documento, ', ')", "incisos")
+      .addSelect("u.cargo", "cargo")
+      .addSelect("d.checklist", "incisos")
       .addSelect("resp.nomeCompleto", "reponsavelPelaAvaliacao")
       .addSelect("coord.nomeCompleto", "coordenador")
       .addSelect("med.nomeCompleto", "medico")
       .addSelect("CASE WHEN r.status = 1 THEN true ELSE false END", "deferido")
-      .addSelect("SUM(CAST(NULLIF(d.qtdDias, '') AS INTEGER))", "qtdDias")
+      .addSelect("d.qtdDias", "qtdDias")
       .from("requerimento", "r")
       .innerJoin("usuario", "u", "r.usuarioId = u.id")
       .leftJoin("documentos", "d", "d.requerimentoId = r.id")
@@ -26,19 +27,7 @@ import { ViewColumn, ViewEntity } from "typeorm";
       .leftJoin("historicos", "hCoord", "hCoord.requerimentoId = r.id AND hCoord.etapaDestino = 2")
       .leftJoin("usuario", "coord", "coord.id = hCoord.funcionarioId")
       .leftJoin("historicos", "hMed", "hMed.requerimentoId = r.id AND hMed.etapaDestino = 3")
-      .leftJoin("usuario", "med", "med.id = hMed.funcionarioId")
-      .groupBy("r.id")
-      .addGroupBy("u.nomeCompleto")
-      .addGroupBy("u.email")
-      .addGroupBy("u.cpf")
-      .addGroupBy("u.matricula")
-      .addGroupBy("u.departamento")
-      .addGroupBy("u.secretaria")
-      .addGroupBy("u.telefone")
-      .addGroupBy("resp.nomeCompleto")
-      .addGroupBy("coord.nomeCompleto")
-      .addGroupBy("med.nomeCompleto")
-      .addGroupBy("r.status"),
+      .leftJoin("usuario", "med", "med.id = hMed.funcionarioId"),
 })
 export class RelatorioAtestado {
   @ViewColumn()
@@ -55,6 +44,9 @@ export class RelatorioAtestado {
 
   @ViewColumn()
   matricula: string;
+
+  @ViewColumn()
+  cargo: string;
 
   @ViewColumn()
   departamento: string;
@@ -81,5 +73,5 @@ export class RelatorioAtestado {
   deferido: boolean;
 
   @ViewColumn()
-  qtdDias: number;
+  qtdDias: string;
 }
