@@ -19,6 +19,7 @@ import { ViewColumn, ViewEntity } from "typeorm";
       .addSelect("med.nomeCompleto", "medico")
       .addSelect("CASE WHEN r.status = 1 THEN true ELSE false END", "deferido")
       .addSelect("d.qtdDias", "qtdDias")
+      .addSelect("r.assinatura", "assinatura")
       .from("requerimento", "r")
       .innerJoin("usuario", "u", "r.usuarioId = u.id")
       .leftJoin("documentos", "d", "d.requerimentoId = r.id")
@@ -74,4 +75,8 @@ export class RelatorioAtestado {
 
   @ViewColumn()
   qtdDias: string;
+
+  @ViewColumn()
+  assinatura: string;
+
 }
