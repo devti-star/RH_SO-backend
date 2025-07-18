@@ -32,7 +32,7 @@ export class RelatorioAtestadoService {
                         padding: 0;
                         box-sizing: border-box;
                         position: relative;
-                        min-height: 90vh;
+                        max-height: 95vh;
                     }
                     .element-header{
                         width: 30%;
@@ -112,7 +112,7 @@ export class RelatorioAtestadoService {
                         color: #888;
                         padding: 18px 0 6px 0;
                         letter-spacing: 0.05em;
-                        margin-top: 5px; 
+                         
                         }
 
                     .titulo-principal {
