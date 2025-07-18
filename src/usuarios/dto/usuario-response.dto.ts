@@ -19,6 +19,7 @@ export class UsuarioResponseDto {
       this.cargo = usuario.cargo,
       this.foto = usuario.foto,
       this.role = usuario.role
+      this.isActive = usuario.isActive;
     }
   
   id: number;
@@ -33,6 +34,7 @@ export class UsuarioResponseDto {
   cargo: string;
   foto?: string | null;
   role: Role;
+  isActive: boolean;
 
 }
 

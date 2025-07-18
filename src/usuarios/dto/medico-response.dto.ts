@@ -20,6 +20,7 @@ export class MedicoResponseDto {
       this.foto = usuario.foto,
       this.role = usuario.role,
       this.crm = usuario.crm
+      this.isActive = usuario.isActive;
     }
   
   id: number;
@@ -34,6 +35,7 @@ export class MedicoResponseDto {
   cargo: string;
   foto?: string | null;
   role: Role;
-  crm?: string | null;   
+  crm?: string | null;  
+  isActive: boolean; 
 }
 

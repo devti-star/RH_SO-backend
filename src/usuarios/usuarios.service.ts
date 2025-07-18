@@ -133,7 +133,7 @@ export class UsuariosService {
       select: campos.length > 0 ? campos : undefined,
       relations: campos.includes("rg") ? { rg: true } : { rg: false },
     });
-    console.log("findOne usuario", usuario);
+    // console.log("findOne usuario", usuario);
     if (!usuario) {
       throw new UsuarioNotFoundException(id);
     }
