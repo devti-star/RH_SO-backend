@@ -108,7 +108,7 @@ export class RelatorioAtestadoService {
                     .rodape-institucional {
                         width: 100%;
                         position: absolute;
-                        bottom: 0;
+                        bottom: 30px;
                         left: 0;
                         text-align: center;
                         font-size: 12px;
