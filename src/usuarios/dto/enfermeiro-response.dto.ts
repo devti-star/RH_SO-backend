@@ -20,6 +20,7 @@ export class EnfermeiroResponseDto {
       this.foto = usuario.foto,
       this.role = usuario.role,
       this.cre = usuario.cre
+      this.isActive = usuario.isActive;
     }
   
   id: number;
@@ -35,5 +36,6 @@ export class EnfermeiroResponseDto {
   foto?: string | null;
   role: Role;
   cre?: string | null;   
+  isActive: boolean;
 }
 

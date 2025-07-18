@@ -20,6 +20,7 @@ import { DocumentosModule } from './documentos/documentos.module';
 import { DefaultIdGuard } from "./auth/guards/check-id-default-user.guard";
 import { RelatorioAtestado } from "./relatorio-atestado/entities/relatorio-atestado.viewentity";
 import { RelatorioAtestadoModule } from "./relatorio-atestado/module/relatorio-atestado.module";
+import { IsUserActivated } from "./auth/guards/is-user-activated.guard";
 
 
 
@@ -58,6 +59,7 @@ import { RelatorioAtestadoModule } from "./relatorio-atestado/module/relatorio-a
   providers: [
     AppService,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide : APP_GUARD, useClass: IsUserActivated},
    // { provide: APP_GUARD, useClass: DefaultIdGuard },
 
   ],
