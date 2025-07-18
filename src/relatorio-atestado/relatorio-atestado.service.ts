@@ -32,7 +32,7 @@ export class RelatorioAtestadoService {
                         padding: 0;
                         box-sizing: border-box;
                         position: relative;
-                        min-height: 100vh;
+                        min-height: 90vh;
                     }
                     .element-header{
                         width: 30%;
@@ -107,15 +107,14 @@ export class RelatorioAtestadoService {
                     }
                     .rodape-institucional {
                         width: 100%;
-                        position: absolute;
-                        bottom: 30px;
-                        left: 0;
                         text-align: center;
                         font-size: 12px;
                         color: #888;
                         padding: 18px 0 6px 0;
                         letter-spacing: 0.05em;
-                    }
+                        margin-top: 5px; 
+                        }
+
                     .titulo-principal {
                         text-align: center;
                         margin: 32px 0 24px 0;
@@ -220,6 +219,7 @@ export class RelatorioAtestadoService {
 
                 <!-- STATUS DEFERIDO/INDEFERIDO AO FINAL DO DOCUMENTO -->
                 <div style="margin: 26px 0 0 0; text-align: center; font-size: 17px; font-weight: bold;">
+                    Resultado: 
                     {{#if qtdDias}}
                         {{qtdDias}}
                     {{else}}
