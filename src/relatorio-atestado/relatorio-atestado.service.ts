@@ -143,7 +143,9 @@ export class RelatorioAtestadoService {
                 <table class="tabela1">
                     <tr>
                         <td class="cinza">Nome:</td>
-                        <td class="branco" colspan="3">{{nomeCompleto}}</td>
+                        <td class="branco" >{{nomeCompleto}}</td>
+                        <td class="cinza">Telefone:</td>
+                        <td class="branco">{{telefone}}</td>
                     </tr>
                     <tr>
                         <td class="cinza">Matrícula:</td>

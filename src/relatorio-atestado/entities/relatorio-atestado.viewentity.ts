@@ -14,7 +14,19 @@ import { ViewColumn, ViewEntity } from "typeorm";
       .addSelect("u.telefone", "telefone")
       .addSelect("u.cargo", "cargo")
       .addSelect("d.checklist", "incisos")
-      .addSelect("resp.nomeCompleto", "reponsavelPelaAvaliacao")
+
+      // Subquery para pegar o nome do responsável da avaliação (etapaAtual = 6, mais recente)
+      .addSelect(subQuery => {
+        return subQuery
+          .select("uResp.nomeCompleto")
+          .from("historicos", "hResp")
+          .innerJoin("usuario", "uResp", "uResp.id = hResp.funcionarioId")
+          .where("hResp.requerimentoId = r.id")
+          .andWhere("hResp.etapaAtual = 0")
+          .orderBy("hResp.dataRegistro", "DESC")
+          .limit(1);
+      }, "reponsavelPelaAvaliacao")
+
       .addSelect("coord.nomeCompleto", "coordenador")
       .addSelect("med.nomeCompleto", "medico")
       .addSelect("CASE WHEN r.status = 1 THEN true ELSE false END", "deferido")
@@ -23,8 +35,6 @@ import { ViewColumn, ViewEntity } from "typeorm";
       .from("requerimento", "r")
       .innerJoin("usuario", "u", "r.usuarioId = u.id")
       .leftJoin("documentos", "d", "d.requerimentoId = r.id")
-      .leftJoin("historicos", "hResp", "hResp.requerimentoId = r.id AND hResp.etapaDestino = 1")
-      .leftJoin("usuario", "resp", "resp.id = hResp.funcionarioId")
       .leftJoin("historicos", "hCoord", "hCoord.requerimentoId = r.id AND hCoord.etapaDestino = 2")
       .leftJoin("usuario", "coord", "coord.id = hCoord.funcionarioId")
       .leftJoin("historicos", "hMed", "hMed.requerimentoId = r.id AND hMed.etapaDestino = 3")
@@ -61,6 +71,7 @@ export class RelatorioAtestado {
   @ViewColumn()
   incisos: string;
 
+  /** Último usuário que atuou na etapa 6 (responsável pela avaliação) */
   @ViewColumn()
   reponsavelPelaAvaliacao: string;
 
@@ -78,5 +89,4 @@ export class RelatorioAtestado {
 
   @ViewColumn()
   assinatura: string;
-
 }
