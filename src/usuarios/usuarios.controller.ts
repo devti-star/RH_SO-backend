@@ -144,7 +144,7 @@ export class UsuariosController {
       throw new ForbiddenException("Acesso negado");
     }
     // Pegue o usuário e verifique se há foto
-    const user = await this.usuariosService.findOne(id, ["foto"]);
+    const user = await this.usuariosService.findOne(id, ["id","foto"]);
     if (!user || !user.foto) throw new NotFoundException();
     const caminho = path.join(process.cwd(), "fotosUsuario", user.foto);
 
